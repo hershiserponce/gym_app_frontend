@@ -55,7 +55,9 @@ export function RevenueChart({ data, isLoading }: RevenueChartProps) {
                 title={`${point.date}: $${point.total}`}
               >
                 <div
-                  className="w-full bg-primary rounded-t transition-all duration-300"
+                 className={`w-full rounded-t transition-all duration-300 ${
+                   i % 3 === 0 ? "bg-chart-1" : i % 3 === 1 ? "bg-chart-2" : "bg-chart-3"
+                 }`}
                   style={{
                     height: `${Math.max(4, height)}px`,
                     maxWidth: `${barWidth}px`,

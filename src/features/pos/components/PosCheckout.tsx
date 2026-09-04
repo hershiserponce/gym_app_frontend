@@ -51,7 +51,7 @@ export function PosCheckout() {
 
   const { items, addItem, removeItem, updateQuantity, setDiscount, clearCart } =
     useCartStore()
-  const { data: productsData } = usePosProducts(debouncedSearch)
+  const { data: productsData, isError: productsError, error: productsLoadError } = usePosProducts(debouncedSearch)
   const createSaleMutation = useCreateSale()
 
   const products = productsData?.data || []
@@ -60,8 +60,10 @@ export function PosCheckout() {
   const total = Math.max(0, subtotal - discount)
 
   const handleAddProduct = (product: Record<string, unknown>) => {
+    if (Number(product.stock ?? 0) <= 0) return
+
     addItem({
-      productId: product.id as number,
+      productId: String(product.documentId ?? product.id),
       name: product.name as string,
       price: product.price as number,
       quantity: 1,
@@ -109,8 +111,8 @@ export function PosCheckout() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {products.map((p: Record<string, unknown>) => (
             <Card
-              key={p.id as number}
-              className="cursor-pointer hover:bg-accent transition-colors"
+              key={String(p.documentId ?? p.id)}
+              className={Number(p.stock ?? 0) > 0 ? "cursor-pointer hover:bg-accent transition-colors" : "opacity-60"}
               onClick={() => handleAddProduct(p)}
             >
               <CardContent className="p-3">
@@ -122,7 +124,9 @@ export function PosCheckout() {
               </CardContent>
             </Card>
           ))}
-          {products.length === 0 && !debouncedSearch && (
+          {productsError ? (
+            <p className="col-span-full py-8 text-center text-destructive">Error al cargar productos: {productsLoadError instanceof Error ? productsLoadError.message : "intenta nuevamente"}</p>
+          ) : products.length === 0 && !debouncedSearch && (
             <p className="col-span-full text-center py-8 text-muted-foreground">
               No hay productos activos
             </p>

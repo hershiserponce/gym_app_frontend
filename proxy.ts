@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const publicRoutes = ["/login"]
+const publicRoutes = ["/", "/login", "/register", "/signup"]
 
 export function proxy(request: NextRequest) {
   const jwt = request.cookies.get("auth-storage")?.value
   const isPublicRoute = publicRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route)
+    route === "/"
+      ? request.nextUrl.pathname === "/"
+      : request.nextUrl.pathname.startsWith(route)
   )
 
   if (!isPublicRoute && !jwt) {

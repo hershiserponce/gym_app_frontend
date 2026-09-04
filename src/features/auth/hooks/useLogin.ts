@@ -8,11 +8,18 @@ import type { LoginInput } from "@/src/features/auth/types"
 export function useLogin() {
   const router = useRouter()
   const setAuth = useAuthStore((state) => state.setAuth)
+  const setUser = useAuthStore((state) => state.setUser)
 
   return useMutation({
     mutationFn: (data: LoginInput) => authService.login(data),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setAuth(data.user, data.jwt)
+      try {
+        const user = await authService.me()
+        setUser(user)
+      } catch {
+        // /auth/me falla silenciosamente; gymId queda del setAuth
+      }
       toast.success("Inicio de sesión exitoso")
       router.push("/dashboard")
     },

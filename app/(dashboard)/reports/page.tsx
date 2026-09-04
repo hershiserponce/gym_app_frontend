@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FileText, Download, BarChart3 } from "lucide-react"
+import { Download } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { paymentsService } from "@/src/services/payments"
 import { salesService } from "@/src/services/sales"
@@ -27,13 +27,13 @@ export default function ReportsPage() {
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
   const [dateFrom, setDateFrom] = useState(formatDateForApi(firstDay))
   const [dateTo, setDateTo] = useState(formatDateForApi(today))
-  const [activeTab, setActiveTab] = useState("daily")
+  const [activeTab, setActiveTab] = useState("payments")
 
   const { data: paymentsData } = useQuery({
     queryKey: ["reports-payments", dateFrom, dateTo],
     queryFn: () =>
       paymentsService.list({
-        pagination: { pageSize: 1000 },
+        pagination: { pageSize: 100 },
         filters: {
           paymentDate: {
             $gte: `${dateFrom}T00:00:00.000Z`,
@@ -48,7 +48,7 @@ export default function ReportsPage() {
     queryKey: ["reports-sales", dateFrom, dateTo],
     queryFn: () =>
       salesService.list({
-        pagination: { pageSize: 1000 },
+        pagination: { pageSize: 100 },
         filters: {
           saleDate: {
             $gte: `${dateFrom}T00:00:00.000Z`,
@@ -63,7 +63,7 @@ export default function ReportsPage() {
     queryKey: ["reports-clients", dateFrom, dateTo],
     queryFn: () =>
       clientsService.list({
-        pagination: { pageSize: 1000 },
+        pagination: { pageSize: 100 },
         filters: {
           registrationDate: {
             $gte: `${dateFrom}T00:00:00.000Z`,
@@ -119,11 +119,11 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="page-shell">
+      <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Reportes</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Reportes</h1>
+          <p className="page-description">
             Visualiza y exporta los datos del gimnasio
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function ReportsPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="space-y-1">
               <label className="text-sm font-medium">Desde</label>
               <Input
@@ -207,7 +207,7 @@ export default function ReportsPage() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="w-full justify-start overflow-x-auto sm:w-auto">
           <TabsTrigger value="payments">Pagos</TabsTrigger>
           <TabsTrigger value="sales">Ventas</TabsTrigger>
           <TabsTrigger value="clients">Clientes Nuevos</TabsTrigger>

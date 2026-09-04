@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "GymApp - Administración de Gimnasios",
-  description: "Sistema profesional para la administración de gimnasios",
+  description: "Clientes, membresías, pagos e inventario. Todo tu gimnasio, bajo control.",
 }
 
 export default function RootLayout({

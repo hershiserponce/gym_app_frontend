@@ -24,7 +24,7 @@ const typeVariants: Record<string, "default" | "destructive" | "secondary"> = { 
 export default function MovementsPage() {
   const [page, setPage] = useState(1)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["inventory-movements", { page }],
     queryFn: () =>
       inventoryMovementsService.list({
@@ -67,7 +67,9 @@ export default function MovementsPage() {
                     ))}
                   </TableRow>
                 ))
-              : movements.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={6} className="py-8 text-center text-destructive">Error al cargar movimientos: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : movements.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">

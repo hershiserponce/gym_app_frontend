@@ -28,7 +28,7 @@ export default function AuditPage() {
   const [search, setSearch] = useState("")
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["audit-logs", page, debouncedSearch],
     queryFn: () =>
       auditLogsService.list({
@@ -87,7 +87,9 @@ export default function AuditPage() {
                     ))}
                   </TableRow>
                 ))
-              : logs.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={6} className="py-8 text-center text-destructive">Error al cargar auditoría: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : logs.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">

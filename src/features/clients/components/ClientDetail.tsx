@@ -29,7 +29,7 @@ import { useClient } from "@/src/features/clients/hooks/useClients"
 import { formatDate, formatCurrency, getInitials, formatPhone } from "@/src/utils/formatters"
 
 type ClientDetailProps = {
-  clientId: number
+  clientId: string | number
 }
 
 export function ClientDetail({ clientId }: ClientDetailProps) {

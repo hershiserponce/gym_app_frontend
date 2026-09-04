@@ -62,24 +62,24 @@ export function ClientTable() {
       ...(debouncedSearch
         ? { fullName: { $containsi: debouncedSearch } }
         : {}),
-      ...(statusFilter !== "all" ? { status: statusFilter } : {}),
+      ...(statusFilter !== "all" ? { status: { $eq: statusFilter } } : {}),
     },
   }
 
-  const { data, isLoading } = useClientsList(params)
+  const { data, isLoading, isError, error } = useClientsList(params)
   const deleteMutation = useDeleteClient()
 
   const clients = data?.data || []
   const pagination = data?.meta?.pagination
 
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id)
+  const handleDelete = (client: Record<string, unknown>) => {
+    deleteMutation.mutate((client.documentId ?? client.id) as string | number)
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
+    <div className="page-shell">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div><h1 className="page-title">Clientes</h1><p className="page-description">Administra los clientes registrados.</p></div>
         <Link href="/clients/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -88,7 +88,7 @@ export function ClientTable() {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="data-toolbar">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -145,7 +145,9 @@ export function ClientTable() {
                     ))}
                   </TableRow>
                 ))
-              : clients.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={6} className="py-8 text-center text-destructive">Error al cargar clientes: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : clients.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
@@ -154,7 +156,7 @@ export function ClientTable() {
                   </TableRow>
                 )
                 : clients.map((client: Record<string, unknown>) => (
-                    <TableRow key={client.id as number}>
+                    <TableRow key={String(client.documentId ?? client.id)}>
                       <TableCell className="font-medium">
                         {client.fullName as string}
                       </TableCell>
@@ -176,12 +178,12 @@ export function ClientTable() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Link href={`/clients/${client.id}`}>
+                           <Link href={`/clients/${String(client.documentId ?? client.id)}`}>
                             <Button variant="ghost" size="icon">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Link href={`/clients/${client.id}/edit`}>
+                           <Link href={`/clients/${String(client.documentId ?? client.id)}/edit`}>
                             <Button variant="ghost" size="icon">
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -200,7 +202,7 @@ export function ClientTable() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDelete(client.id as number)}
+                                   onClick={() => handleDelete(client)}
                                 >
                                   Eliminar
                                 </AlertDialogAction>

@@ -25,6 +25,7 @@ export type ApiSingleResponse<T> = {
 
 export type StrapiData<T> = {
   id: number
+  documentId: string
   attributes: T
 }
 
@@ -49,7 +50,7 @@ export type QueryParams = {
     page?: number
     pageSize?: number
   }
-  sort?: string[]
+  sort?: string | string[]
   filters?: Record<string, unknown>
   populate?: string | string[]
   fields?: string[]

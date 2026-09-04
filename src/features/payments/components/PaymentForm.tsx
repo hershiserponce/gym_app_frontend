@@ -29,9 +29,9 @@ import { useMembershipsList } from "@/src/features/memberships/hooks/useMembersh
 import { useClientMembershipsList } from "@/src/features/client-memberships/hooks/useClientMemberships"
 
 const paymentSchema = z.object({
-  client: z.number({ message: "Selecciona un cliente" }),
-  membership: z.number({ message: "Selecciona una membresía" }),
-  clientMembership: z.number().optional(),
+  client: z.string().min(1, "Selecciona un cliente"),
+  membership: z.string().min(1, "Selecciona una membresía"),
+  clientMembership: z.string().optional(),
   amount: z.number().min(1, "El monto debe ser mayor a 0"),
   paymentMethod: z.enum(["cash", "card", "transfer", "other"]),
   paymentDate: z.string().min(1, "La fecha es requerida"),
@@ -56,8 +56,8 @@ export function PaymentForm({
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
-      client: undefined as unknown as number,
-      membership: undefined as unknown as number,
+      client: "",
+      membership: "",
       amount: 0,
       paymentMethod: "cash",
       paymentDate: new Date().toISOString().slice(0, 16),
@@ -77,13 +77,13 @@ export function PaymentForm({
   const { data: membershipsData } = useMembershipsList({
     pagination: { pageSize: 100 },
     sort: ["name:asc"],
-    filters: { isActive: true },
+     filters: { isActive: { $eq: true } },
   })
 
   const { data: clientMembershipsData } = useClientMembershipsList({
     pagination: { pageSize: 100 },
     filters: selectedClient
-      ? { client: selectedClient, status: { $in: ["active", "frozen"] } }
+      ? { client: { documentId: { $eq: selectedClient } }, status: { $in: ["active", "frozen"] } }
       : {},
     populate: "client,membership",
   })
@@ -102,8 +102,8 @@ export function PaymentForm({
               <FormItem>
                 <FormLabel>Cliente</FormLabel>
                 <Select
-                  onValueChange={(v) => field.onChange(Number(v))}
-                  value={field.value ? String(field.value) : ""}
+                  onValueChange={field.onChange}
+                  value={field.value || ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -112,7 +112,7 @@ export function PaymentForm({
                   </FormControl>
                   <SelectContent>
                     {clients.map((c: Record<string, unknown>) => (
-                      <SelectItem key={c.id as number} value={String(c.id)}>
+                      <SelectItem key={String(c.documentId ?? c.id)} value={String(c.documentId ?? c.id)}>
                         {c.fullName as string}
                       </SelectItem>
                     ))}
@@ -128,8 +128,8 @@ export function PaymentForm({
               <FormItem>
                 <FormLabel>Membresía</FormLabel>
                 <Select
-                  onValueChange={(v) => field.onChange(Number(v))}
-                  value={field.value ? String(field.value) : ""}
+                  onValueChange={field.onChange}
+                  value={field.value || ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -138,7 +138,7 @@ export function PaymentForm({
                   </FormControl>
                   <SelectContent>
                     {memberships.map((m: Record<string, unknown>) => (
-                      <SelectItem key={m.id as number} value={String(m.id)}>
+                      <SelectItem key={String(m.documentId ?? m.id)} value={String(m.documentId ?? m.id)}>
                         {m.name as string}
                       </SelectItem>
                     ))}
@@ -155,7 +155,7 @@ export function PaymentForm({
                 <FormLabel>Suscripción (opcional)</FormLabel>
                 <Select
                   onValueChange={(v) =>
-                    field.onChange(v ? Number(v) : undefined)
+                    field.onChange(v || undefined)
                   }
                   value={field.value ? String(field.value) : ""}
                 >
@@ -167,8 +167,8 @@ export function PaymentForm({
                   <SelectContent>
                     {clientMemberships.map((cm: Record<string, unknown>) => (
                       <SelectItem
-                        key={cm.id as number}
-                        value={String(cm.id)}
+                        key={String(cm.documentId ?? cm.id)}
+                        value={String(cm.documentId ?? cm.id)}
                       >
                         {(cm.membership as Record<string, unknown>)?.name as string} -{" "}
                         {(cm.client as Record<string, unknown>)?.fullName as string}

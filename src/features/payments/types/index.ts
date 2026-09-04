@@ -1,7 +1,7 @@
 export type PaymentFormData = {
-  client: number
-  membership: number
-  clientMembership?: number
+  client: string
+  membership: string
+  clientMembership?: string
   amount: number
   paymentMethod: "cash" | "card" | "transfer" | "other"
   paymentDate: string

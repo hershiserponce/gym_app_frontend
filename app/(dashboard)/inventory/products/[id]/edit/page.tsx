@@ -16,7 +16,7 @@ import { useProduct, useUpdateProduct } from "@/src/features/inventory/hooks/use
 export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
-  const id = Number(params.id)
+  const id = String(params.id)
   const { data: product, isLoading } = useProduct(id)
   const updateMutation = useUpdateProduct(id)
 
@@ -43,7 +43,7 @@ export default function EditProductPage() {
             defaultValues={{
               name: p.name as string,
               description: (p.description as string) || "",
-              category: ((p.category as Record<string, unknown>)?.id as number) || undefined,
+               category: ((p.category as Record<string, unknown>)?.documentId as string) || ((p.category as Record<string, unknown>)?.id != null ? String((p.category as Record<string, unknown>)?.id) : null),
               barcode: (p.barcode as string) || "",
               cost: p.cost as number,
               price: p.price as number,

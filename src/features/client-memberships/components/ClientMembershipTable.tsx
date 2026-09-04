@@ -77,19 +77,19 @@ export function ClientMembershipTable() {
       ...(debouncedSearch
         ? { client: { fullName: { $containsi: debouncedSearch } } }
         : {}),
-      ...(statusFilter !== "all" ? { status: statusFilter } : {}),
+      ...(statusFilter !== "all" ? { status: { $eq: statusFilter } } : {}),
     },
   }
 
-  const { data, isLoading } = useClientMembershipsList(params)
-  const updateMutation = useUpdateClientMembership(0)
+  const { data, isLoading, isError, error } = useClientMembershipsList(params)
+  const updateMutation = useUpdateClientMembership()
 
   const memberships = data?.data || []
   const pagination = data?.meta?.pagination
 
-  const handleStatusChange = (id: number, newStatus: string) => {
+  const handleStatusChange = (id: string | number, newStatus: string) => {
     updateMutation.mutate(
-      { status: newStatus } as Record<string, unknown> as Parameters<typeof updateMutation.mutate>[0],
+      { id, data: { status: newStatus } as Partial<import("@/src/features/client-memberships/types").ClientMembershipFormData> },
       {
         onSuccess: () => {
           const label = statusLabels[newStatus] || newStatus
@@ -100,12 +100,13 @@ export function ClientMembershipTable() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Gestión de Membresías</h1>
+    <div className="page-shell">
+      <div>
+        <h1 className="page-title">Gestión de Membresías</h1>
+        <p className="page-description">Supervisa el estado y vigencia de las membresías.</p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="data-toolbar">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -163,7 +164,9 @@ export function ClientMembershipTable() {
                     ))}
                   </TableRow>
                 ))
-              : memberships.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={7} className="py-8 text-center text-destructive">Error al cargar membresías: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : memberships.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
@@ -174,7 +177,7 @@ export function ClientMembershipTable() {
                 : memberships.map((m: Record<string, unknown>) => {
                     const remaining = daysRemaining(m.endDate as string)
                     return (
-                      <TableRow key={m.id as number}>
+                      <TableRow key={String(m.documentId ?? m.id)}>
                         <TableCell className="font-medium">
                           {(m.client as Record<string, unknown>)?.fullName as string}
                         </TableCell>
@@ -211,7 +214,7 @@ export function ClientMembershipTable() {
                                   title="Congelar"
                                   onClick={() =>
                                     handleStatusChange(
-                                      m.id as number,
+                                       (m.documentId ?? m.id) as string | number,
                                       "frozen"
                                     )
                                   }
@@ -224,7 +227,7 @@ export function ClientMembershipTable() {
                                   title="Cancelar"
                                   onClick={() =>
                                     handleStatusChange(
-                                      m.id as number,
+                                       (m.documentId ?? m.id) as string | number,
                                       "cancelled"
                                     )
                                   }
@@ -240,7 +243,7 @@ export function ClientMembershipTable() {
                                 title="Reactivar"
                                 onClick={() =>
                                   handleStatusChange(
-                                    m.id as number,
+                                     (m.documentId ?? m.id) as string | number,
                                     "active"
                                   )
                                 }
@@ -255,7 +258,7 @@ export function ClientMembershipTable() {
                                 title="Renovar"
                                 onClick={() =>
                                   handleStatusChange(
-                                    m.id as number,
+                                   (m.documentId ?? m.id) as string | number,
                                     "active"
                                   )
                                 }

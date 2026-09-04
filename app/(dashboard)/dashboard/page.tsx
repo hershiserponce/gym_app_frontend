@@ -20,10 +20,10 @@ export default function DashboardPage() {
   const { data: recentSales, isLoading: salesLoading } = useRecentSales()
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-description">
           Resumen general del gimnasio
         </p>
       </div>
@@ -32,25 +32,29 @@ export default function DashboardPage() {
         <StatsCard
           title="Ingresos del Día"
           value={stats ? formatCurrency(stats.dailyRevenue) : "$0"}
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+           icon={<DollarSign className="h-4 w-4" />}
+           tone="blue"
           isLoading={statsLoading}
         />
         <StatsCard
           title="Ingresos por Membresías"
           value={stats ? formatCurrency(stats.membershipRevenue) : "$0"}
-          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+           icon={<CreditCard className="h-4 w-4" />}
+           tone="teal"
           isLoading={statsLoading}
         />
         <StatsCard
           title="Ingresos por Ventas"
           value={stats ? formatCurrency(stats.salesRevenue) : "$0"}
-          icon={<ShoppingCart className="h-4 w-4 text-muted-foreground" />}
+           icon={<ShoppingCart className="h-4 w-4" />}
+           tone="coral"
           isLoading={statsLoading}
         />
         <StatsCard
           title="Clientes Registrados Hoy"
           value={stats ? String(stats.newClientsToday) : "0"}
-          icon={<Users className="h-4 w-4 text-muted-foreground" />}
+           icon={<Users className="h-4 w-4" />}
+           tone="violet"
           isLoading={statsLoading}
         />
       </div>
@@ -63,7 +67,8 @@ export default function DashboardPage() {
           <StatsCard
             title="Membresías Activas"
             value={stats ? String(stats.activeMemberships) : "0"}
-            icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+             icon={<TrendingUp className="h-4 w-4" />}
+             tone="teal"
             isLoading={statsLoading}
           />
           <RecentPayments data={recentPayments || []} isLoading={paymentsLoading} />

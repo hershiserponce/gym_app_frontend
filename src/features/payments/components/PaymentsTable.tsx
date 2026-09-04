@@ -66,20 +66,20 @@ export function PaymentsTable() {
       ...(debouncedSearch
         ? { client: { fullName: { $containsi: debouncedSearch } } }
         : {}),
-      ...(methodFilter !== "all" ? { paymentMethod: methodFilter } : {}),
+      ...(methodFilter !== "all" ? { paymentMethod: { $eq: methodFilter } } : {}),
     },
   }
 
-  const { data, isLoading } = usePaymentsList(params)
+  const { data, isLoading, isError, error } = usePaymentsList(params)
   const deleteMutation = useDeletePayment()
 
   const payments = data?.data || []
   const pagination = data?.meta?.pagination
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Pagos de Membresías</h1>
+    <div className="page-shell">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div><h1 className="page-title">Pagos de Membresías</h1><p className="page-description">Consulta y administra los pagos recibidos.</p></div>
         <Link href="/payments/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -88,7 +88,7 @@ export function PaymentsTable() {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="data-toolbar">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -146,7 +146,9 @@ export function PaymentsTable() {
                     ))}
                   </TableRow>
                 ))
-              : payments.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={7} className="py-8 text-center text-destructive">Error al cargar pagos: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : payments.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
@@ -155,7 +157,7 @@ export function PaymentsTable() {
                   </TableRow>
                 )
                 : payments.map((p: Record<string, unknown>) => (
-                    <TableRow key={p.id as number}>
+                    <TableRow key={String(p.documentId ?? p.id)}>
                       <TableCell className="font-mono text-xs">
                         {p.receiptNumber as string || "-"}
                       </TableCell>
@@ -185,7 +187,7 @@ export function PaymentsTable() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => deleteMutation.mutate(p.id as number)}
+                                 onClick={() => deleteMutation.mutate((p.documentId ?? p.id) as string | number)}
                               >
                                 Eliminar
                               </AlertDialogAction>

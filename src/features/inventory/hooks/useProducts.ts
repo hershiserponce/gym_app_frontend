@@ -3,24 +3,29 @@ import { toast } from "sonner"
 import { productsService } from "@/src/services/products"
 import type { QueryParams } from "@/src/types/api"
 import type { ProductFormData } from "@/src/features/inventory/types"
+import type { EntityId } from "@/src/utils/strapi"
+import { useTenantId } from "@/src/hooks/useTenantId"
 
 export function useProductsList(params?: QueryParams) {
+  const gymId = useTenantId()
   return useQuery({
-    queryKey: ["products", params],
+    queryKey: ["products", gymId, params],
     queryFn: () =>
       productsService.list({
         ...params,
         populate: "category",
-      }),
+    }),
+    enabled: gymId !== null,
   })
 }
 
-export function useProduct(id: number) {
+export function useProduct(id: EntityId | undefined) {
+  const gymId = useTenantId()
   return useQuery({
-    queryKey: ["products", id],
+    queryKey: ["products", gymId, id],
     queryFn: () =>
-      productsService.getById(id, { populate: "category,movements" }),
-    enabled: !!id,
+      productsService.getById(id!, { populate: "category,movements" }),
+    enabled: id !== undefined && gymId !== null,
   })
 }
 
@@ -32,6 +37,7 @@ export function useCreateProduct() {
       productsService.create(data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["pos-products"] })
       toast.success("Producto creado exitosamente")
     },
     onError: (error: Error) => {
@@ -40,7 +46,7 @@ export function useCreateProduct() {
   })
 }
 
-export function useUpdateProduct(id: number) {
+export function useUpdateProduct(id: EntityId) {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -48,6 +54,7 @@ export function useUpdateProduct(id: number) {
       productsService.update(id, data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["pos-products"] })
       toast.success("Producto actualizado exitosamente")
     },
     onError: (error: Error) => {
@@ -60,9 +67,10 @@ export function useDeleteProduct() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: number) => productsService.delete(id),
+    mutationFn: (id: EntityId) => productsService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["pos-products"] })
       toast.success("Producto eliminado exitosamente")
     },
     onError: (error: Error) => {

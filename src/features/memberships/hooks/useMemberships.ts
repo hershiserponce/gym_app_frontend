@@ -3,19 +3,24 @@ import { toast } from "sonner"
 import { membershipsService } from "@/src/services/memberships"
 import type { QueryParams } from "@/src/types/api"
 import type { MembershipFormData } from "@/src/features/memberships/types"
+import type { EntityId } from "@/src/utils/strapi"
+import { useTenantId } from "@/src/hooks/useTenantId"
 
 export function useMembershipsList(params?: QueryParams) {
+  const gymId = useTenantId()
   return useQuery({
-    queryKey: ["memberships", params],
+    queryKey: ["memberships", gymId, params],
     queryFn: () => membershipsService.list(params),
+    enabled: gymId !== null,
   })
 }
 
-export function useMembership(id: number) {
+export function useMembership(id: EntityId | undefined) {
+  const gymId = useTenantId()
   return useQuery({
-    queryKey: ["memberships", id],
-    queryFn: () => membershipsService.getById(id),
-    enabled: !!id,
+    queryKey: ["memberships", gymId, id],
+    queryFn: () => membershipsService.getById(id!),
+    enabled: id !== undefined && gymId !== null,
   })
 }
 
@@ -27,6 +32,7 @@ export function useCreateMembership() {
       membershipsService.create(data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memberships"] })
+      queryClient.invalidateQueries({ queryKey: ["client-memberships"] })
       toast.success("Membresía creada exitosamente")
     },
     onError: (error: Error) => {
@@ -35,7 +41,7 @@ export function useCreateMembership() {
   })
 }
 
-export function useUpdateMembership(id: number) {
+export function useUpdateMembership(id: EntityId) {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -43,6 +49,7 @@ export function useUpdateMembership(id: number) {
       membershipsService.update(id, data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memberships"] })
+      queryClient.invalidateQueries({ queryKey: ["client-memberships"] })
       toast.success("Membresía actualizada exitosamente")
     },
     onError: (error: Error) => {
@@ -55,9 +62,10 @@ export function useDeleteMembership() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: number) => membershipsService.delete(id),
+    mutationFn: (id: EntityId) => membershipsService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memberships"] })
+      queryClient.invalidateQueries({ queryKey: ["client-memberships"] })
       toast.success("Membresía eliminada exitosamente")
     },
     onError: (error: Error) => {

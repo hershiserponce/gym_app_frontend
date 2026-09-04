@@ -4,9 +4,10 @@ import { PosCheckout } from "@/src/features/pos/components/PosCheckout"
 
 export default function PosPage() {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Punto de Venta</h1>
+    <div className="page-shell">
+      <div>
+        <h1 className="page-title">Punto de Venta</h1>
+        <p className="page-description">Registra ventas y gestiona el carrito.</p>
       </div>
       <PosCheckout />
     </div>

@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
+import Link from "next/link"
 
 const loginSchema = z.object({
   identifier: z
@@ -89,7 +90,7 @@ export function LoginForm() {
                       type="password"
                       placeholder="••••••••"
                       autoComplete="current-password"
-                      {...field}
+                       {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -106,6 +107,9 @@ export function LoginForm() {
               )}
               {loginMutation.isPending ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              ¿Nuevo gimnasio? <Link className="underline" href="/signup">Crear cuenta</Link>
+            </p>
           </form>
         </Form>
       </CardContent>

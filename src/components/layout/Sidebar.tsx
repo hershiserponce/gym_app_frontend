@@ -15,6 +15,7 @@ import {
   Shield,
   FileText,
   LogOut,
+  X,
   ChevronLeft,
   ChevronRight,
   UserCog,
@@ -50,26 +51,35 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const { sidebar, toggleSidebar } = useUiStore()
+  const { sidebar, toggleSidebar, isMobileMenuOpen, setMobileMenuOpen } = useUiStore()
   const logout = useAuthStore((state) => state.logout)
   const isCollapsed = sidebar === "collapsed"
+  const showCompactLayout = isCollapsed && !isMobileMenuOpen
 
   const handleLogout = () => {
     logout()
     router.push("/login")
   }
 
+  const closeMobileMenu = () => setMobileMenuOpen(false)
+
   return (
+    <>
+      {isMobileMenuOpen && (
+        <button type="button" aria-label="Cerrar menu" className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-[2px] md:hidden" onClick={closeMobileMenu} />
+      )}
     <aside
       className={cn(
         "fixed left-0 top-0 z-40 flex h-full flex-col border-r bg-sidebar transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-16" : "w-64",
+        "-translate-x-full md:translate-x-0",
+        isMobileMenuOpen && "translate-x-0 w-72"
       )}
     >
       <div
         className={cn(
           "flex h-14 items-center border-b px-4",
-          isCollapsed ? "justify-center" : "justify-between"
+          showCompactLayout ? "justify-center" : "justify-between"
         )}
       >
         {!isCollapsed && (
@@ -80,10 +90,11 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-sidebar-foreground"
-          onClick={toggleSidebar}
+           className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          onClick={isMobileMenuOpen ? closeMobileMenu : toggleSidebar}
         >
-          {isCollapsed ? (
+          <span className="sr-only">{showCompactLayout ? "Expandir menu" : "Contraer menu"}</span>
+          {isMobileMenuOpen ? <X className="h-4 w-4" /> : showCompactLayout ? (
             <ChevronRight className="h-4 w-4" />
           ) : (
             <ChevronLeft className="h-4 w-4" />
@@ -99,16 +110,17 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={closeMobileMenu}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
-                  isCollapsed && "justify-center px-2"
+                  showCompactLayout && "justify-center px-2"
                 )}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
-                {!isCollapsed && <span>{item.label}</span>}
+                {!showCompactLayout && <span>{item.label}</span>}
               </Link>
             )
           })}
@@ -119,15 +131,16 @@ export function Sidebar() {
         <Button
           variant="ghost"
           className={cn(
-            "w-full text-sidebar-foreground/70 hover:text-sidebar-foreground",
-            isCollapsed ? "justify-center px-2" : "justify-start"
+             "w-full text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+            showCompactLayout ? "justify-center px-2" : "justify-start"
           )}
           onClick={handleLogout}
         >
           <LogOut className="h-5 w-5 shrink-0" />
-          {!isCollapsed && <span className="ml-3">Cerrar Sesión</span>}
+          {!showCompactLayout && <span className="ml-3">Cerrar Sesión</span>}
         </Button>
       </div>
     </aside>
+    </>
   )
 }

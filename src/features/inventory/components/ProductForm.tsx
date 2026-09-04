@@ -31,7 +31,7 @@ import { productCategoriesService } from "@/src/services/product-categories"
 const productSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().optional(),
-  category: z.number().optional(),
+  category: z.string().nullable().optional(),
   barcode: z.string().optional(),
   cost: z.number().min(0, "El costo debe ser mayor o igual a 0"),
   price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
@@ -61,7 +61,7 @@ export function ProductForm({
     defaultValues: {
       name: "",
       description: "",
-      category: undefined as unknown as number,
+      category: null,
       barcode: "",
       cost: 0,
       price: 0,
@@ -86,7 +86,13 @@ export function ProductForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit((values) => onSubmit({
+        ...values,
+        description: values.description?.trim() || "",
+        category: values.category || null,
+        barcode: values.barcode?.trim() || "",
+        supplier: values.supplier?.trim() || "",
+      }))} className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             name="name"
@@ -128,7 +134,7 @@ export function ProductForm({
                   </FormControl>
                   <SelectContent>
                     {categories.map((c: Record<string, unknown>) => (
-                      <SelectItem key={c.id as number} value={String(c.id)}>
+                      <SelectItem key={String(c.documentId ?? c.id)} value={String(c.documentId ?? c.id)}>
                         {c.name as string}
                       </SelectItem>
                     ))}

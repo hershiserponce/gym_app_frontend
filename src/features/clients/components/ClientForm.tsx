@@ -41,7 +41,7 @@ type ClientFormValues = z.infer<typeof clientSchema>
 
 type ClientFormProps = {
   defaultValues?: Partial<ClientFormValues>
-  onSubmit: (data: ClientFormValues) => void
+  onSubmit: (data: ClientFormData) => void
   isPending: boolean
   onCancel?: () => void
 }
@@ -75,7 +75,15 @@ export function ClientForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit((values) => onSubmit({
+        ...values,
+        email: values.email.trim() || null,
+        phone: values.phone?.trim() || null,
+        dateOfBirth: values.dateOfBirth || null,
+        gender: values.gender || null,
+        notes: values.notes?.trim() || null,
+        address: values.address?.trim() || null,
+      }))} className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}

@@ -45,12 +45,12 @@ import { Search } from "lucide-react"
 export default function CategoriesPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
-  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | number | null>(null)
   const [editName, setEditName] = useState("")
   const [newName, setNewName] = useState("")
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["product-categories", debouncedSearch],
     queryFn: () =>
       productCategoriesService.list({
@@ -69,24 +69,27 @@ export default function CategoriesPage() {
       setNewName("")
       toast.success("Categoría creada")
     },
+    onError: (error: Error) => toast.error(error.message || "Error al crear la categoría"),
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, name }: { id: number; name: string }) =>
+    mutationFn: ({ id, name }: { id: string | number; name: string }) =>
       productCategoriesService.update(id, { name } as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-categories"] })
       setEditingId(null)
       toast.success("Categoría actualizada")
     },
+    onError: (error: Error) => toast.error(error.message || "Error al actualizar la categoría"),
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => productCategoriesService.delete(id),
+    mutationFn: (id: string | number) => productCategoriesService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-categories"] })
       toast.success("Categoría eliminada")
     },
+    onError: (error: Error) => toast.error(error.message || "Error al eliminar la categoría"),
   })
 
   const categories = data?.data || []
@@ -153,7 +156,9 @@ export default function CategoriesPage() {
                     <TableCell><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
                   </TableRow>
                 ))
-              : categories.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={2} className="py-8 text-center text-destructive">Error al cargar categorías: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : categories.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
@@ -162,9 +167,9 @@ export default function CategoriesPage() {
                   </TableRow>
                 )
                 : categories.map((c: Record<string, unknown>) => (
-                    <TableRow key={c.id as number}>
+                    <TableRow key={String(c.documentId ?? c.id)}>
                       <TableCell>
-                        {editingId === c.id ? (
+                        {editingId === (c.documentId ?? c.id) ? (
                           <Input
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
@@ -175,14 +180,14 @@ export default function CategoriesPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {editingId === c.id ? (
+                        {editingId === (c.documentId ?? c.id) ? (
                           <div className="flex justify-end gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() =>
                                 updateMutation.mutate({
-                                  id: c.id as number,
+                                   id: (c.documentId ?? c.id) as string | number,
                                   name: editName,
                                 })
                               }
@@ -203,7 +208,7 @@ export default function CategoriesPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => {
-                                setEditingId(c.id as number)
+                                 setEditingId((c.documentId ?? c.id) as string | number)
                                 setEditName(c.name as string)
                               }}
                             >
@@ -221,7 +226,7 @@ export default function CategoriesPage() {
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => deleteMutation.mutate(c.id as number)}
+                                     onClick={() => deleteMutation.mutate((c.documentId ?? c.id) as string | number)}
                                   >
                                     Eliminar
                                   </AlertDialogAction>

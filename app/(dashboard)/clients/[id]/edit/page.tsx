@@ -16,7 +16,7 @@ import { useClient, useUpdateClient } from "@/src/features/clients/hooks/useClie
 export default function EditClientPage() {
   const router = useRouter()
   const params = useParams()
-  const id = Number(params.id)
+  const id = String(params.id)
   const { data: client, isLoading } = useClient(id)
   const updateMutation = useUpdateClient(id)
 

@@ -16,7 +16,7 @@ import { useMembership, useUpdateMembership } from "@/src/features/memberships/h
 export default function EditMembershipPage() {
   const router = useRouter()
   const params = useParams()
-  const id = Number(params.id)
+  const id = String(params.id)
   const { data: membership, isLoading } = useMembership(id)
   const updateMutation = useUpdateMembership(id)
 

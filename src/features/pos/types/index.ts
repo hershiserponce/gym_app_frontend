@@ -1,5 +1,6 @@
 export type PosProduct = {
   id: number
+  documentId: string
   name: string
   price: number
   stock: number
@@ -7,9 +8,9 @@ export type PosProduct = {
 }
 
 export type SalePayload = {
-  client?: number
+  client?: string
   items: Array<{
-    product: number
+    product: string
     quantity: number
     unitPrice: number
     subtotal: number

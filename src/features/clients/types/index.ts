@@ -3,17 +3,18 @@ import type { SaleData } from "@/src/services/sales"
 
 export type ClientFormData = {
   fullName: string
-  email: string
-  phone: string
-  dateOfBirth: string
-  gender: "male" | "female" | "other" | ""
-  notes: string
+  email: string | null
+  phone: string | null
+  dateOfBirth: string | null
+  gender: "male" | "female" | "other" | null
+  notes: string | null
   status: "active" | "inactive"
-  address: string
+  address: string | null
 }
 
 export type ClientWithRelations = {
   id: number
+  documentId: string
   fullName: string
   email: string | null
   phone: string | null

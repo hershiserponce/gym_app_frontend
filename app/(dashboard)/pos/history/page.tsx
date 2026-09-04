@@ -31,7 +31,7 @@ const paymentMethodLabels: Record<string, string> = {
 export default function SalesHistoryPage() {
   const [page, setPage] = useState(1)
 
-  const { data, isLoading } = useSalesHistory({
+  const { data, isLoading, isError, error } = useSalesHistory({
     pagination: { page, pageSize: PAGINATION.DEFAULT_PAGE_SIZE },
   })
 
@@ -104,7 +104,9 @@ export default function SalesHistoryPage() {
                     ))}
                   </TableRow>
                 ))
-              : sales.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={7} className="py-8 text-center text-destructive">Error al cargar ventas: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : sales.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">

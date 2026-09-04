@@ -6,5 +6,5 @@ type PageProps = {
 
 export default async function ClientDetailPage({ params }: PageProps) {
   const { id } = await params
-  return <ClientDetail clientId={Number(id)} />
+  return <ClientDetail clientId={String(id)} />
 }

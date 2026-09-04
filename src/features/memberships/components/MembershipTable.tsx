@@ -64,25 +64,25 @@ export function MembershipTable() {
     filters: {
       ...(debouncedSearch ? { name: { $containsi: debouncedSearch } } : {}),
       ...(activeFilter !== "all"
-        ? { isActive: activeFilter === "active" }
+         ? { isActive: { $eq: activeFilter === "active" } }
         : {}),
     },
   }
 
-  const { data, isLoading } = useMembershipsList(params)
+  const { data, isLoading, isError, error } = useMembershipsList(params)
   const deleteMutation = useDeleteMembership()
 
   const memberships = data?.data || []
   const pagination = data?.meta?.pagination
 
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id)
+  const handleDelete = (membership: Record<string, unknown>) => {
+    deleteMutation.mutate((membership.documentId ?? membership.id) as string | number)
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Membresías</h1>
+    <div className="page-shell">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div><h1 className="page-title">Membresías</h1><p className="page-description">Define los planes disponibles para tus clientes.</p></div>
         <Link href="/memberships/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -91,7 +91,7 @@ export function MembershipTable() {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="data-toolbar">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -146,7 +146,9 @@ export function MembershipTable() {
                     ))}
                   </TableRow>
                 ))
-              : memberships.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={7} className="py-8 text-center text-destructive">Error al cargar membresías: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : memberships.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
@@ -155,7 +157,7 @@ export function MembershipTable() {
                   </TableRow>
                 )
                 : memberships.map((m: Record<string, unknown>) => (
-                    <TableRow key={m.id as number}>
+                    <TableRow key={String(m.documentId ?? m.id)}>
                       <TableCell>
                         <Circle
                           className="h-4 w-4"
@@ -171,6 +173,7 @@ export function MembershipTable() {
                       <TableCell>
                         <Badge
                           variant={m.isActive ? "default" : "secondary"}
+                          className={m.isActive ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50" : ""}
                         >
                           {m.isActive ? "Activa" : "Inactiva"}
                         </Badge>
@@ -178,7 +181,7 @@ export function MembershipTable() {
                       <TableCell>{m.sortOrder as number}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Link href={`/memberships/${m.id}/edit`}>
+                           <Link href={`/memberships/${String(m.documentId ?? m.id)}/edit`}>
                             <Button variant="ghost" size="icon">
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -196,7 +199,7 @@ export function MembershipTable() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDelete(m.id as number)}
+                                   onClick={() => handleDelete(m)}
                                 >
                                   Eliminar
                                 </AlertDialogAction>

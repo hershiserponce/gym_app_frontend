@@ -64,17 +64,17 @@ export function ProductTable() {
       : undefined,
   }
 
-  const { data, isLoading } = useProductsList(params)
+  const { data, isLoading, isError, error } = useProductsList(params)
   const deleteMutation = useDeleteProduct()
 
   const products = data?.data || []
   const pagination = data?.meta?.pagination
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
-        <div className="flex gap-2">
+    <div className="page-shell">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div><h1 className="page-title">Productos</h1><p className="page-description">Controla existencias, precios y categorías.</p></div>
+        <div className="flex flex-wrap gap-2">
           <Link href="/inventory/categories">
             <Button variant="outline">Categorías</Button>
           </Link>
@@ -90,7 +90,7 @@ export function ProductTable() {
         </div>
       </div>
 
-      <div className="relative flex-1 max-w-sm">
+      <div className="data-toolbar relative max-w-xl">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Buscar por nombre..."
@@ -127,7 +127,9 @@ export function ProductTable() {
                     ))}
                   </TableRow>
                 ))
-              : products.length === 0
+              : isError
+                ? <TableRow><TableCell colSpan={7} className="py-8 text-center text-destructive">Error al cargar productos: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                : products.length === 0
                 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
@@ -136,7 +138,7 @@ export function ProductTable() {
                   </TableRow>
                 )
                 : products.map((p: Record<string, unknown>) => (
-                    <TableRow key={p.id as number}>
+                    <TableRow key={String(p.documentId ?? p.id)}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {p.name as string}
@@ -157,6 +159,13 @@ export function ProductTable() {
                                 ? "secondary"
                                 : "default"
                           }
+                          className={
+                            (p.stock as number) <= 0
+                              ? ""
+                              : (p.stock as number) <= (p.minStock as number)
+                                ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50"
+                                : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+                          }
                         >
                           {p.stock as number}
                         </Badge>
@@ -164,13 +173,16 @@ export function ProductTable() {
                       <TableCell>{formatCurrency(p.price as number)}</TableCell>
                       <TableCell>{formatCurrency(p.cost as number)}</TableCell>
                       <TableCell>
-                        <Badge variant={p.isActive ? "default" : "secondary"}>
+                        <Badge
+                          variant={p.isActive ? "default" : "secondary"}
+                          className={p.isActive ? "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-50" : ""}
+                        >
                           {p.isActive ? "Activo" : "Inactivo"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Link href={`/inventory/products/${p.id}/edit`}>
+                           <Link href={`/inventory/products/${String(p.documentId ?? p.id)}/edit`}>
                             <Button variant="ghost" size="icon">
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -187,7 +199,7 @@ export function ProductTable() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => deleteMutation.mutate(p.id as number)}
+                                   onClick={() => deleteMutation.mutate((p.documentId ?? p.id) as string | number)}
                                 >
                                   Eliminar
                                 </AlertDialogAction>

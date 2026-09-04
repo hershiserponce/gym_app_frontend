@@ -13,12 +13,12 @@ export const authService = {
   },
 
   async register(data: RegisterInput): Promise<AuthResponse> {
-    const response = await api.post("/auth/local/register", data)
+    const response = await api.post("/auth/signup", data)
     return response.data
   },
 
   async me(): Promise<User> {
-    const response = await api.get("/users/me?populate=role")
+    const response = await api.get("/auth/me")
     return response.data
   },
 

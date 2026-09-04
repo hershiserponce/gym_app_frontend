@@ -2,7 +2,7 @@ import { create } from "zustand"
 
 export type CartItem = {
   id: string
-  productId: number
+  productId: string
   name: string
   price: number
   quantity: number
@@ -31,7 +31,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
       set({
         items: items.map((i) =>
           i.productId === item.productId
-            ? { ...i, quantity: i.quantity + item.quantity }
+            ? { ...i, quantity: Math.min(i.stock, i.quantity + item.quantity) }
             : i
         ),
       })
@@ -51,7 +51,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
   updateQuantity: (id, quantity) =>
     set((state) => ({
       items: state.items.map((i) =>
-        i.id === id ? { ...i, quantity: Math.max(1, quantity) } : i
+        i.id === id ? { ...i, quantity: Math.min(i.stock, Math.max(1, quantity)) } : i
       ),
     })),
   setDiscount: (discount) => set({ discount: Math.max(0, discount) }),

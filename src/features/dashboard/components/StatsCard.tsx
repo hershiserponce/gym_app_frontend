@@ -8,6 +8,14 @@ type StatsCardProps = {
   icon: ReactNode
   description?: string
   isLoading?: boolean
+  tone?: "blue" | "teal" | "coral" | "violet"
+}
+
+const toneStyles = {
+  blue: "bg-blue-50 text-blue-600",
+  teal: "bg-teal-50 text-teal-600",
+  coral: "bg-orange-50 text-orange-600",
+  violet: "bg-violet-50 text-violet-600",
 }
 
 export function StatsCard({
@@ -16,6 +24,7 @@ export function StatsCard({
   icon,
   description,
   isLoading,
+  tone = "blue",
 }: StatsCardProps) {
   return (
     <Card>
@@ -23,7 +32,9 @@ export function StatsCard({
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        {icon}
+        <span className={`rounded-lg p-2 ${toneStyles[tone]}`}>
+          {icon}
+        </span>
       </CardHeader>
       <CardContent>
         {isLoading ? (

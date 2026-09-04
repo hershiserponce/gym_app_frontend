@@ -1,7 +1,7 @@
 export type ProductFormData = {
   name: string
   description: string
-  category: number
+  category?: string | null
   barcode: string
   cost: number
   price: number
@@ -18,7 +18,7 @@ export type CategoryFormData = {
 }
 
 export type MovementFormData = {
-  product: number
+  product: string
   type: "in" | "out" | "adjustment"
   quantity: number
   referenceType: "purchase" | "sale" | "adjustment" | "expiration"

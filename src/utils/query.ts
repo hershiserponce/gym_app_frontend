@@ -1,43 +1,50 @@
 import type { QueryParams } from "@/src/types/api"
 
+function appendQueryValue(
+  searchParams: URLSearchParams,
+  key: string,
+  value: unknown
+) {
+  if (value === undefined) return
+
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => appendQueryValue(searchParams, `${key}[${index}]`, item))
+    return
+  }
+
+  if (value !== null && typeof value === "object") {
+    Object.entries(value).forEach(([childKey, childValue]) => {
+      appendQueryValue(searchParams, `${key}[${childKey}]`, childValue)
+    })
+    return
+  }
+
+  searchParams.append(key, String(value))
+}
+
 export function buildQueryString(params?: QueryParams): string {
   if (!params) return ""
 
   const searchParams = new URLSearchParams()
 
   if (params.pagination) {
-    if (params.pagination.page) {
-      searchParams.set("pagination[page]", String(params.pagination.page))
-    }
-    if (params.pagination.pageSize) {
-      searchParams.set("pagination[pageSize]", String(params.pagination.pageSize))
-    }
+    appendQueryValue(searchParams, "pagination", params.pagination)
   }
 
   if (params.sort) {
-    params.sort.forEach((s, i) => {
-      searchParams.set(`sort[${i}]`, s)
-    })
+    appendQueryValue(searchParams, "sort", params.sort)
   }
 
-  if (params.filters) {
-    searchParams.set("filters", JSON.stringify(params.filters))
+  if (params.filters && Object.keys(params.filters).length > 0) {
+    appendQueryValue(searchParams, "filters", params.filters)
   }
 
   if (params.populate) {
-    if (Array.isArray(params.populate)) {
-      params.populate.forEach((p, i) => {
-        searchParams.set(`populate[${i}]`, p)
-      })
-    } else {
-      searchParams.set("populate", params.populate)
-    }
+    appendQueryValue(searchParams, "populate", params.populate)
   }
 
   if (params.fields) {
-    params.fields.forEach((f, i) => {
-      searchParams.set(`fields[${i}]`, f)
-    })
+    appendQueryValue(searchParams, "fields", params.fields)
   }
 
   const query = searchParams.toString()
