@@ -3,7 +3,6 @@ import { toast } from "sonner"
 import { paymentsService } from "@/src/services/payments"
 import type { QueryParams } from "@/src/types/api"
 import type { PaymentFormData } from "@/src/features/payments/types"
-import { clientMembershipsService } from "@/src/services/client-memberships"
 import type { EntityId } from "@/src/utils/strapi"
 import { useTenantId } from "@/src/hooks/useTenantId"
 
@@ -14,7 +13,7 @@ export function usePaymentsList(params?: QueryParams) {
     queryFn: () =>
       paymentsService.list({
         ...params,
-        populate: "client,membership,clientMembership",
+        populate: "client,membership",
     }),
     enabled: gymId !== null,
   })
@@ -24,25 +23,8 @@ export function useCreatePayment() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: PaymentFormData) => {
-      const payment = await paymentsService.create(
-        data as unknown as Record<string, unknown>
-      )
-
-      if (data.clientMembership) {
-        const membership = await clientMembershipsService.getById(
-          data.clientMembership
-        )
-        const m = membership as Record<string, unknown>
-        if (m.status !== "active") {
-          await clientMembershipsService.update(data.clientMembership, {
-            status: "active",
-          } as Record<string, unknown>)
-        }
-      }
-
-      return payment
-    },
+    mutationFn: (data: PaymentFormData) =>
+      paymentsService.create(data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] })
       queryClient.invalidateQueries({ queryKey: ["client-memberships"] })

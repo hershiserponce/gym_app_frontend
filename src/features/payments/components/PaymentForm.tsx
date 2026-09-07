@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -26,12 +27,10 @@ import { PAYMENT_METHOD_OPTIONS } from "@/src/lib/constants"
 import type { PaymentFormData } from "@/src/features/payments/types"
 import { useClientsList } from "@/src/features/clients/hooks/useClients"
 import { useMembershipsList } from "@/src/features/memberships/hooks/useMemberships"
-import { useClientMembershipsList } from "@/src/features/client-memberships/hooks/useClientMemberships"
 
 const paymentSchema = z.object({
   client: z.string().min(1, "Selecciona un cliente"),
   membership: z.string().min(1, "Selecciona una membresía"),
-  clientMembership: z.string().optional(),
   amount: z.number().min(1, "El monto debe ser mayor a 0"),
   paymentMethod: z.enum(["cash", "card", "transfer", "other"]),
   paymentDate: z.string().min(1, "La fecha es requerida"),
@@ -66,7 +65,6 @@ export function PaymentForm({
     },
   })
 
-  const selectedClient = form.watch("client")
   const selectedMembership = form.watch("membership")
 
   const { data: clientsData } = useClientsList({
@@ -74,23 +72,25 @@ export function PaymentForm({
     sort: ["fullName:asc"],
   })
 
-  const { data: membershipsData } = useMembershipsList({
+const { data: membershipsData } = useMembershipsList({
     pagination: { pageSize: 100 },
     sort: ["name:asc"],
-     filters: { isActive: { $eq: true } },
-  })
-
-  const { data: clientMembershipsData } = useClientMembershipsList({
-    pagination: { pageSize: 100 },
-    filters: selectedClient
-      ? { client: { documentId: { $eq: selectedClient } }, status: { $in: ["active", "frozen"] } }
-      : {},
-    populate: "client,membership",
+    filters: { isActive: { $eq: true } },
   })
 
   const clients = clientsData?.data || []
   const memberships = membershipsData?.data || []
-  const clientMemberships = clientMembershipsData?.data || []
+
+  useEffect(() => {
+    if (!selectedMembership) return
+    const membership = memberships.find(
+      (m: Record<string, unknown>) => String(m.documentId ?? m.id) === selectedMembership
+    )
+    const price = membership?.price
+    if (typeof price === "number") {
+      form.setValue("amount", price, { shouldValidate: true })
+    }
+  }, [selectedMembership, memberships, form])
 
   return (
     <Form {...form}>
@@ -148,39 +148,7 @@ export function PaymentForm({
               </FormItem>
             )}
           />
-          <FormField
-            name="clientMembership"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Suscripción (opcional)</FormLabel>
-                <Select
-                  onValueChange={(v) =>
-                    field.onChange(v || undefined)
-                  }
-                  value={field.value ? String(field.value) : ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar suscripción..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {clientMemberships.map((cm: Record<string, unknown>) => (
-                      <SelectItem
-                        key={String(cm.documentId ?? cm.id)}
-                        value={String(cm.documentId ?? cm.id)}
-                      >
-                        {(cm.membership as Record<string, unknown>)?.name as string} -{" "}
-                        {(cm.client as Record<string, unknown>)?.fullName as string}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
+<FormField
             name="amount"
             render={({ field }) => (
               <FormItem>
