@@ -10,15 +10,12 @@ import {
   ClipboardList,
   Package,
   ShoppingCart,
-  BarChart3,
+BarChart3,
   Settings,
-  Shield,
-  FileText,
   LogOut,
   X,
   ChevronLeft,
   ChevronRight,
-  UserCog,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -42,9 +39,6 @@ const navItems: NavItem[] = [
   { label: "Inventario", href: "/inventory", icon: Package },
   { label: "Punto de Venta", href: "/pos", icon: ShoppingCart },
   { label: "Reportes", href: "/reports", icon: BarChart3 },
-  { label: "Usuarios", href: "/users", icon: UserCog },
-  { label: "Roles", href: "/roles", icon: Shield },
-  { label: "Auditoría", href: "/audit", icon: FileText },
   { label: "Configuración", href: "/settings", icon: Settings },
 ]
 
