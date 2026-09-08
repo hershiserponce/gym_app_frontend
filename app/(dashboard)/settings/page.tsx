@@ -7,6 +7,8 @@ import { useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import api from "@/src/services/api"
+import { authService } from "@/src/features/auth/services"
+import { useAuthStore } from "@/src/store/auth-store"
 import {
   Card,
   CardContent,
@@ -41,8 +43,17 @@ const settingsSchema = z.object({
 
 type SettingsFormValues = z.infer<typeof settingsSchema>
 
+const profileSchema = z.object({
+  username: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  email: z.string().email("Email inválido"),
+})
+
+type ProfileFormValues = z.infer<typeof profileSchema>
+
 export default function SettingsPage() {
   const queryClient = useQueryClient()
+  const user = useAuthStore((state) => state.user)
+  const setUser = useAuthStore((state) => state.setUser)
 
   const { data, isLoading } = useQuery({
     queryKey: ["settings"],
@@ -76,6 +87,23 @@ export default function SettingsPage() {
     },
   })
 
+  const profileMutation = useMutation({
+    mutationFn: async (formData: ProfileFormValues) => {
+      if (!user) throw new Error("Usuario no encontrado")
+      return authService.updateProfile(user.id, {
+        username: formData.username,
+        email: formData.email,
+      })
+    },
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser)
+      toast.success("Perfil actualizado")
+    },
+    onError: () => {
+      toast.error("Error al actualizar el perfil")
+    },
+  })
+
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
@@ -90,22 +118,40 @@ export default function SettingsPage() {
     },
   })
 
-  const settings = data?.data?.attributes || data?.data || {}
+  const settings = data?.data?.attributes || data?.data || data || {}
 
   useEffect(() => {
-    if (settings && settings.gymName) {
+    if (data) {
+      const s = data?.data?.attributes || data?.data || data || {}
       form.reset({
-        gymName: settings.gymName || "",
-        address: settings.address || "",
-        phone: settings.phone || "",
-        email: settings.email || "",
-        currency: settings.currency || "MXN",
-        receiptFooter: settings.receiptFooter || "",
-        defaultMembershipDuration: String(settings.defaultMembershipDuration || 30),
-        lowStockThreshold: String(settings.lowStockThreshold || 5),
+        gymName: s.gymName || "",
+        address: s.address || "",
+        phone: s.phone || "",
+        email: s.email || "",
+        currency: s.currency || "MXN",
+        receiptFooter: s.receiptFooter || "",
+        defaultMembershipDuration: String(s.defaultMembershipDuration || 30),
+        lowStockThreshold: String(s.lowStockThreshold || 5),
       })
     }
-  }, [settings, form])
+  }, [data, form])
+
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      username: user?.username || "",
+      email: user?.email || "",
+    },
+  })
+
+  useEffect(() => {
+    if (user) {
+      profileForm.reset({
+        username: user.username || "",
+        email: user.email || "",
+      })
+    }
+  }, [user, profileForm])
 
   if (isLoading) {
     return (
@@ -120,14 +166,66 @@ export default function SettingsPage() {
     mutation.mutate(values)
   }
 
+  const onProfileSubmit = (values: ProfileFormValues) => {
+    profileMutation.mutate(values)
+  }
+
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Configuración</h1>
         <p className="text-muted-foreground">
-          Administra la configuración general del gimnasio
+          Administra tu perfil y la configuración del gimnasio
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Perfil de Usuario</CardTitle>
+          <CardDescription>
+            Tu información personal
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...profileForm}>
+            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={profileForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de Usuario</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Tu nombre" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={profileForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Correo Electrónico</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="tu@email.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Button type="submit" disabled={profileMutation.isPending}>
+                {profileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Guardar Perfil
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
