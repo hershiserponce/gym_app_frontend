@@ -17,6 +17,7 @@ import { paymentsService } from "@/src/services/payments"
 import { salesService } from "@/src/services/sales"
 import { clientsService } from "@/src/services/clients"
 import { formatCurrency, formatDate } from "@/src/utils/formatters"
+import { useTenantId } from "@/src/hooks/useTenantId"
 
 function formatDateForApi(date: Date): string {
   return date.toISOString().split("T")[0]
@@ -28,9 +29,10 @@ export default function ReportsPage() {
   const [dateFrom, setDateFrom] = useState(formatDateForApi(firstDay))
   const [dateTo, setDateTo] = useState(formatDateForApi(today))
   const [activeTab, setActiveTab] = useState("payments")
+  const gymId = useTenantId()
 
   const { data: paymentsData } = useQuery({
-    queryKey: ["reports-payments", dateFrom, dateTo],
+    queryKey: ["reports-payments", gymId, dateFrom, dateTo],
     queryFn: () =>
       paymentsService.list({
         pagination: { pageSize: 100 },
@@ -42,10 +44,11 @@ export default function ReportsPage() {
         },
         populate: "client,membership",
       }),
+    enabled: gymId !== null,
   })
 
   const { data: salesData } = useQuery({
-    queryKey: ["reports-sales", dateFrom, dateTo],
+    queryKey: ["reports-sales", gymId, dateFrom, dateTo],
     queryFn: () =>
       salesService.list({
         pagination: { pageSize: 100 },
@@ -57,10 +60,11 @@ export default function ReportsPage() {
         },
         populate: "client,items",
       }),
+    enabled: gymId !== null,
   })
 
   const { data: clientsData } = useQuery({
-    queryKey: ["reports-clients", dateFrom, dateTo],
+    queryKey: ["reports-clients", gymId, dateFrom, dateTo],
     queryFn: () =>
       clientsService.list({
         pagination: { pageSize: 100 },
@@ -71,6 +75,7 @@ export default function ReportsPage() {
           },
         },
       }),
+    enabled: gymId !== null,
   })
 
   const payments = paymentsData?.data || []

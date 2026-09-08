@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import api from "@/src/services/api"
 import { authService } from "@/src/features/auth/services"
 import { useAuthStore } from "@/src/store/auth-store"
+import { useTenantId } from "@/src/hooks/useTenantId"
 import {
   Card,
   CardContent,
@@ -54,13 +55,15 @@ export default function SettingsPage() {
   const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
+  const gymId = useTenantId()
 
   const { data, isLoading } = useQuery({
-    queryKey: ["settings"],
+    queryKey: ["settings", gymId],
     queryFn: async () => {
       const response = await api.get("/setting")
       return response.data
     },
+    enabled: gymId !== null,
   })
 
   const mutation = useMutation({
@@ -79,7 +82,7 @@ export default function SettingsPage() {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] })
+      queryClient.invalidateQueries({ queryKey: ["settings", gymId] })
       toast.success("Configuración guardada")
     },
     onError: () => {
