@@ -1,6 +1,7 @@
 "use client"
 
-import { Menu, User } from "lucide-react"
+import { Menu, Moon, Sun, User } from "lucide-react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -21,6 +22,7 @@ export function Header() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
 
   const handleLogout = () => {
     logout()
@@ -39,6 +41,17 @@ export function Header() {
       </Button>
 
       <div className="flex-1" />
+
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+      >
+        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Cambiar tema</span>
+      </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="rounded-full"><Avatar className="h-8 w-8"><AvatarFallback>{user ? getInitials(user.username) : <User className="h-4 w-4" />}</AvatarFallback></Avatar></Button>} />
