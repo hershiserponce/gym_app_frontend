@@ -163,8 +163,8 @@ export function ProductTable() {
                             (p.stock as number) <= 0
                               ? ""
                               : (p.stock as number) <= (p.minStock as number)
-                                ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50"
-                                : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+? "border-amber-500/30 bg-amber-500/15 text-amber-300"
+                                : "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
                           }
                         >
                           {p.stock as number}

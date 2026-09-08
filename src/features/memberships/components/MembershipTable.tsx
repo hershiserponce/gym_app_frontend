@@ -173,7 +173,7 @@ export function MembershipTable() {
                       <TableCell>
                         <Badge
                           variant={m.isActive ? "default" : "secondary"}
-                          className={m.isActive ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50" : ""}
+                          className={m.isActive ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300" : ""}
                         >
                           {m.isActive ? "Activa" : "Inactiva"}
                         </Badge>

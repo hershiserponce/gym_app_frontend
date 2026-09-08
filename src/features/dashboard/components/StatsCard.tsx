@@ -12,10 +12,10 @@ type StatsCardProps = {
 }
 
 const toneStyles = {
-  blue: "bg-blue-50 text-blue-600",
-  teal: "bg-teal-50 text-teal-600",
-  coral: "bg-orange-50 text-orange-600",
-  violet: "bg-violet-50 text-violet-600",
+  blue: "bg-sky-500/15 text-sky-300",
+  teal: "bg-teal-500/15 text-teal-300",
+  coral: "bg-orange-500/15 text-orange-300",
+  violet: "bg-violet-500/15 text-violet-300",
 }
 
 export function StatsCard({
