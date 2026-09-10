@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   Form,
   FormControl,
@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { Loader2 } from "lucide-react"
 import type { ProductFormData } from "@/src/features/inventory/types"
 import { useQuery } from "@tanstack/react-query"
@@ -45,17 +46,22 @@ type ProductFormValues = z.infer<typeof productSchema>
 
 type ProductFormProps = {
   defaultValues?: Partial<ProductFormValues>
-  onSubmit: (data: ProductFormValues) => void
+  currentImageUrl?: string | null
+  onSubmit: (data: ProductFormData) => void
   isPending: boolean
   onCancel?: () => void
 }
 
 export function ProductForm({
   defaultValues,
+  currentImageUrl,
   onSubmit,
   isPending,
   onCancel,
 }: ProductFormProps) {
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [removeImage, setRemoveImage] = useState(false)
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -84,15 +90,44 @@ export function ProductForm({
 
   const categories = categoriesData?.data || []
 
+  const handleSubmit = (values: ProductFormValues) => {
+    onSubmit({
+      ...values,
+      description: values.description?.trim() || "",
+      category: values.category || null,
+      barcode: values.barcode?.trim() || "",
+      supplier: values.supplier?.trim() || "",
+      image: removeImage ? null : imageFile,
+    })
+  }
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((values) => onSubmit({
-        ...values,
-        description: values.description?.trim() || "",
-        category: values.category || null,
-        barcode: values.barcode?.trim() || "",
-        supplier: values.supplier?.trim() || "",
-      }))} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={() => (
+            <FormItem>
+              <FormLabel>Imagen del Producto</FormLabel>
+              <FormControl>
+                <ImageUpload
+                  currentImageUrl={currentImageUrl}
+                  onFileSelect={(file) => {
+                    setImageFile(file)
+                    setRemoveImage(false)
+                  }}
+                  onRemove={() => {
+                    setImageFile(null)
+                    setRemoveImage(true)
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             name="name"

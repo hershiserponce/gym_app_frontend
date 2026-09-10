@@ -10,6 +10,7 @@ export type ClientFormData = {
   notes: string | null
   status: "active" | "inactive"
   address: string | null
+  photo?: File | null
 }
 
 export type ClientWithRelations = {
@@ -20,7 +21,7 @@ export type ClientWithRelations = {
   phone: string | null
   dateOfBirth: string | null
   gender: "male" | "female" | "other" | null
-  photo: unknown | null
+  photoUrl: string | null
   notes: string | null
   status: "active" | "inactive"
   registrationDate: string

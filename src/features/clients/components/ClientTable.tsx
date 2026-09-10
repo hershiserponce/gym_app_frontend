@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
   Plus,
   Search,
@@ -43,7 +44,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useClientsList, useDeleteClient } from "@/src/features/clients/hooks/useClients"
-import { formatDate, formatPhone } from "@/src/utils/formatters"
+import { formatDate, formatPhone, getInitials } from "@/src/utils/formatters"
 import { PAGINATION, STATUS_OPTIONS } from "@/src/lib/constants"
 import { useDebounce } from "@/src/hooks/useDebounce"
 
@@ -126,6 +127,7 @@ export function ClientTable() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12"></TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Correo</TableHead>
               <TableHead>Teléfono</TableHead>
@@ -138,7 +140,7 @@ export function ClientTable() {
             {isLoading
               ? Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
+                    {Array.from({ length: 7 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
@@ -146,17 +148,23 @@ export function ClientTable() {
                   </TableRow>
                 ))
               : isError
-                ? <TableRow><TableCell colSpan={6} className="py-8 text-center text-destructive">Error al cargar clientes: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                ? <TableRow><TableCell colSpan={7} className="py-8 text-center text-destructive">Error al cargar clientes: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
                 : clients.length === 0
                 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       No se encontraron clientes
                     </TableCell>
                   </TableRow>
                 )
                 : clients.map((client: Record<string, unknown>) => (
                     <TableRow key={String(client.documentId ?? client.id)}>
+                      <TableCell>
+                        <Avatar size="sm">
+                          {client.photoUrl && <AvatarImage src={client.photoUrl as string} alt={client.fullName as string} />}
+                          <AvatarFallback>{getInitials(client.fullName as string)}</AvatarFallback>
+                        </Avatar>
+                      </TableCell>
                       <TableCell className="font-medium">
                         {client.fullName as string}
                       </TableCell>

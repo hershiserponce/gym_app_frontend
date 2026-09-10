@@ -9,6 +9,7 @@ export type ProductFormData = {
   minStock: number
   supplier: string
   isActive: boolean
+  image?: File | null
 }
 
 export type CategoryFormData = {

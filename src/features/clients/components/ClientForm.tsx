@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   Form,
   FormControl,
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { Loader2 } from "lucide-react"
 import type { ClientFormData } from "@/src/features/clients/types"
 import { GENDER_OPTIONS, STATUS_OPTIONS } from "@/src/lib/constants"
@@ -41,6 +42,7 @@ type ClientFormValues = z.infer<typeof clientSchema>
 
 type ClientFormProps = {
   defaultValues?: Partial<ClientFormValues>
+  currentPhotoUrl?: string | null
   onSubmit: (data: ClientFormData) => void
   isPending: boolean
   onCancel?: () => void
@@ -48,10 +50,14 @@ type ClientFormProps = {
 
 export function ClientForm({
   defaultValues,
+  currentPhotoUrl,
   onSubmit,
   isPending,
   onCancel,
 }: ClientFormProps) {
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [removePhoto, setRemovePhoto] = useState(false)
+
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
@@ -73,17 +79,46 @@ export function ClientForm({
     }
   }, [defaultValues, form])
 
+  const handleSubmit = (values: ClientFormValues) => {
+    onSubmit({
+      ...values,
+      email: values.email.trim() || null,
+      phone: values.phone?.trim() || null,
+      dateOfBirth: values.dateOfBirth || null,
+      gender: values.gender || null,
+      notes: values.notes?.trim() || null,
+      address: values.address?.trim() || null,
+      photo: removePhoto ? null : photoFile,
+    })
+  }
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((values) => onSubmit({
-        ...values,
-        email: values.email.trim() || null,
-        phone: values.phone?.trim() || null,
-        dateOfBirth: values.dateOfBirth || null,
-        gender: values.gender || null,
-        notes: values.notes?.trim() || null,
-        address: values.address?.trim() || null,
-      }))} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="fullName"
+          render={() => (
+            <FormItem>
+              <FormLabel>Foto del Cliente</FormLabel>
+              <FormControl>
+                <ImageUpload
+                  currentImageUrl={currentPhotoUrl}
+                  onFileSelect={(file) => {
+                    setPhotoFile(file)
+                    setRemovePhoto(false)
+                  }}
+                  onRemove={() => {
+                    setPhotoFile(null)
+                    setRemovePhoto(true)
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}

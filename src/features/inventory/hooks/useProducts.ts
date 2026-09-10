@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { productsService } from "@/src/services/products"
+import { uploadService } from "@/src/services/upload"
 import type { QueryParams } from "@/src/types/api"
 import type { ProductFormData } from "@/src/features/inventory/types"
 import type { EntityId } from "@/src/utils/strapi"
@@ -33,8 +34,16 @@ export function useCreateProduct() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: ProductFormData) =>
-      productsService.create(data as unknown as Record<string, unknown>),
+    mutationFn: async (data: ProductFormData) => {
+      const { image, ...productData } = data
+      const product = await productsService.create(productData as unknown as Record<string, unknown>) as { documentId?: string } | null
+
+      if (image && product?.documentId) {
+        await uploadService.uploadProductImage(product.documentId, image)
+      }
+
+      return product
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
       queryClient.invalidateQueries({ queryKey: ["pos-products"] })
@@ -50,8 +59,16 @@ export function useUpdateProduct(id: EntityId) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: Partial<ProductFormData>) =>
-      productsService.update(id, data as unknown as Record<string, unknown>),
+    mutationFn: async (data: Partial<ProductFormData>) => {
+      const { image, ...productData } = data
+      const product = await productsService.update(id, productData as unknown as Record<string, unknown>)
+
+      if (image) {
+        await uploadService.uploadProductImage(id, image)
+      }
+
+      return product
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
       queryClient.invalidateQueries({ queryKey: ["pos-products"] })

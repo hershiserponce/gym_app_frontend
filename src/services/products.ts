@@ -15,6 +15,7 @@ export type ProductData = {
   stock: number
   minStock: number
   supplier: string | null
+  imageUrl: string | null
   isActive: boolean
 }
 

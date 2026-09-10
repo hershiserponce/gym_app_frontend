@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { clientsService } from "@/src/services/clients"
+import { uploadService } from "@/src/services/upload"
 import type { QueryParams } from "@/src/types/api"
 import type { ClientFormData } from "@/src/features/clients/types"
 import type { EntityId } from "@/src/utils/strapi"
@@ -28,7 +29,16 @@ export function useCreateClient() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: ClientFormData) => clientsService.create(data as unknown as Record<string, unknown>),
+    mutationFn: async (data: ClientFormData) => {
+      const { photo, ...clientData } = data
+      const client = await clientsService.create(clientData as unknown as Record<string, unknown>) as { documentId?: string } | null
+
+      if (photo && client?.documentId) {
+        await uploadService.uploadClientPhoto(client.documentId, photo)
+      }
+
+      return client
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] })
       toast.success("Cliente creado exitosamente")
@@ -43,7 +53,16 @@ export function useUpdateClient(id: EntityId) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: Partial<ClientFormData>) => clientsService.update(id, data as unknown as Record<string, unknown>),
+    mutationFn: async (data: Partial<ClientFormData>) => {
+      const { photo, ...clientData } = data
+      const client = await clientsService.update(id, clientData as unknown as Record<string, unknown>)
+
+      if (photo) {
+        await uploadService.uploadClientPhoto(id, photo)
+      }
+
+      return client
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] })
       toast.success("Cliente actualizado exitosamente")

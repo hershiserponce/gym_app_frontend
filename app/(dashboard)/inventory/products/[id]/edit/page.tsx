@@ -52,6 +52,7 @@ export default function EditProductPage() {
               supplier: (p.supplier as string) || "",
               isActive: p.isActive as boolean,
             }}
+            currentImageUrl={p.imageUrl as string | null}
             onSubmit={handleSubmit}
             isPending={updateMutation.isPending}
             onCancel={() => router.push("/inventory/products")}

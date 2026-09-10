@@ -40,6 +40,7 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
+  Package,
 } from "lucide-react"
 import {
   useProductsList,
@@ -107,6 +108,7 @@ export function ProductTable() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12"></TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Stock</TableHead>
@@ -120,7 +122,7 @@ export function ProductTable() {
             {isLoading
               ? Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
@@ -128,17 +130,30 @@ export function ProductTable() {
                   </TableRow>
                 ))
               : isError
-                ? <TableRow><TableCell colSpan={7} className="py-8 text-center text-destructive">Error al cargar productos: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                ? <TableRow><TableCell colSpan={8} className="py-8 text-center text-destructive">Error al cargar productos: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
                 : products.length === 0
                 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No se encontraron productos
                     </TableCell>
                   </TableRow>
                 )
                 : products.map((p: Record<string, unknown>) => (
                     <TableRow key={String(p.documentId ?? p.id)}>
+                      <TableCell>
+                        {p.imageUrl ? (
+                          <img
+                            src={p.imageUrl as string}
+                            alt={p.name as string}
+                            className="h-8 w-8 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-8 w-8 items-center justify-center rounded bg-muted">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {p.name as string}

@@ -65,6 +65,7 @@ export default function EditClientPage() {
               status: c.status as "active" | "inactive",
               address: (c.address as string) || "",
             }}
+            currentPhotoUrl={c.photoUrl as string | null}
             onSubmit={handleSubmit}
             isPending={updateMutation.isPending}
             onCancel={() => router.push("/clients")}

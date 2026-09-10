@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
   Table,
   TableBody,
@@ -61,6 +61,7 @@ export function ClientDetail({ clientId }: ClientDetailProps) {
         <CardHeader>
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
+              {c.photoUrl && <AvatarImage src={c.photoUrl as string} alt={c.fullName as string} />}
               <AvatarFallback className="text-lg">
                 {getInitials(c.fullName as string)}
               </AvatarFallback>
