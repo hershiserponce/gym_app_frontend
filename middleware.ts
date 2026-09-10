@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 
 const publicRoutes = ["/", "/login", "/register", "/signup"]
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const jwt = request.cookies.get("auth-storage")?.value
   const isPublicRoute = publicRoutes.some((route) =>
     route === "/"

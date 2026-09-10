@@ -15,7 +15,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await api.get("/auth/me")
         setUser(response.data)
       } catch (error) {
-        // Solo se cierra la sesión cuando el token fue rechazado.
         if (error && typeof error === "object" && "response" in error) {
           const response = (error as { response?: { status?: number } }).response
           if (response?.status === 401) logout()
@@ -25,6 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     verifyToken()
   }, [hasHydrated, jwt, logout, setUser])
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    )
+  }
 
   return <>{children}</>
 }

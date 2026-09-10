@@ -49,12 +49,10 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       hasHydrated: false,
       setAuth: (user, jwt) => {
-        localStorage.setItem("jwt", jwt)
         setAuthCookie(jwt)
         set({ user, gymId: (typeof user.gym === "object" ? user.gym?.id : user.gym) ?? null, jwt, isAuthenticated: true })
       },
       logout: () => {
-        localStorage.removeItem("jwt")
         clearAuthCookie()
         set({ user: null, gymId: null, jwt: null, isAuthenticated: false })
       },
@@ -76,7 +74,10 @@ export const useAuthStore = create<AuthState>()(
         jwt: state.jwt,
         isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error("Error rehydrating auth state:", error)
+        }
         state?.setHasHydrated(true)
         if (state?.jwt) setAuthCookie(state.jwt)
       },
