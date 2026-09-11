@@ -61,7 +61,12 @@ export function ClientTable() {
     sort: ["fullName:asc"],
     filters: {
       ...(debouncedSearch
-        ? { fullName: { $containsi: debouncedSearch } }
+        ? {
+            $or: [
+              { fullName: { $containsi: debouncedSearch } },
+              { phone: { $containsi: debouncedSearch } },
+            ],
+          }
         : {}),
       ...(statusFilter !== "all" ? { status: { $eq: statusFilter } } : {}),
     },
@@ -93,7 +98,7 @@ export function ClientTable() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre..."
+            placeholder="Buscar por nombre o teléfono..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
