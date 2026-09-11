@@ -7,7 +7,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import type { RecentPayment } from "@/src/features/dashboard/types"
-import { formatCurrency, formatDate } from "@/src/utils/formatters"
+import { formatDate } from "@/src/utils/formatters"
+import { useCurrency } from "@/src/hooks/useCurrency"
 
 type RecentPaymentsProps = {
   data: RecentPayment[]
@@ -22,6 +23,7 @@ const paymentMethodLabels: Record<string, string> = {
 }
 
 export function RecentPayments({ data, isLoading }: RecentPaymentsProps) {
+  const { formatValue } = useCurrency()
   return (
     <Card>
       <CardHeader>
@@ -55,7 +57,7 @@ export function RecentPayments({ data, isLoading }: RecentPaymentsProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold">
-                    {formatCurrency(payment.amount)}
+                    {formatValue(payment.amount)}
                   </span>
                   <Badge variant="secondary" className="text-xs">
                     {paymentMethodLabels[payment.paymentMethod] || payment.paymentMethod}

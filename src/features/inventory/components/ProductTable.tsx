@@ -46,11 +46,12 @@ import {
   useProductsList,
   useDeleteProduct,
 } from "@/src/features/inventory/hooks/useProducts"
-import { formatCurrency } from "@/src/utils/formatters"
 import { PAGINATION } from "@/src/lib/constants"
 import { useDebounce } from "@/src/hooks/useDebounce"
+import { useCurrency } from "@/src/hooks/useCurrency"
 
 export function ProductTable() {
+  const { formatValue } = useCurrency()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGINATION.DEFAULT_PAGE_SIZE)
   const [search, setSearch] = useState("")
@@ -185,8 +186,8 @@ export function ProductTable() {
                           {p.stock as number}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatCurrency(p.price as number)}</TableCell>
-                      <TableCell>{formatCurrency(p.cost as number)}</TableCell>
+                      <TableCell>{formatValue(p.price as number)}</TableCell>
+                      <TableCell>{formatValue(p.cost as number)}</TableCell>
                       <TableCell>
                         <Badge
                           variant={p.isActive ? "default" : "secondary"}

@@ -16,14 +16,16 @@ import { useQuery } from "@tanstack/react-query"
 import { paymentsService } from "@/src/services/payments"
 import { salesService } from "@/src/services/sales"
 import { clientsService } from "@/src/services/clients"
-import { formatCurrency, formatDate } from "@/src/utils/formatters"
+import { formatDate } from "@/src/utils/formatters"
 import { useTenantId } from "@/src/hooks/useTenantId"
+import { useCurrency } from "@/src/hooks/useCurrency"
 
 function formatDateForApi(date: Date): string {
   return date.toISOString().split("T")[0]
 }
 
 export default function ReportsPage() {
+  const { formatValue } = useCurrency()
   const today = new Date()
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
   const [dateFrom, setDateFrom] = useState(formatDateForApi(firstDay))
@@ -167,7 +169,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(totalPayments)}</p>
+            <p className="text-2xl font-bold">{formatValue(totalPayments)}</p>
             <p className="text-xs text-muted-foreground">
               {payments.length} pago(s)
             </p>
@@ -180,7 +182,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(totalSales)}</p>
+            <p className="text-2xl font-bold">{formatValue(totalSales)}</p>
             <p className="text-xs text-muted-foreground">
               {sales.length} venta(s)
             </p>
@@ -207,7 +209,7 @@ export default function ReportsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold">{formatCurrency(totalRevenue)}</p>
+          <p className="text-4xl font-bold">{formatValue(totalRevenue)}</p>
         </CardContent>
       </Card>
 
@@ -241,7 +243,7 @@ export default function ReportsPage() {
                   <tr key={p.id as number} className="border-b">
                     <td className="p-2">{(p.client as Record<string, unknown>)?.fullName as string}</td>
                     <td className="p-2">{(p.membership as Record<string, unknown>)?.name as string}</td>
-                    <td className="p-2 text-right font-medium">{formatCurrency(p.amount as number)}</td>
+                    <td className="p-2 text-right font-medium">{formatValue(p.amount as number)}</td>
                     <td className="p-2">{p.paymentMethod as string}</td>
                     <td className="p-2">{formatDate(p.paymentDate as string, "short")}</td>
                   </tr>
@@ -277,7 +279,7 @@ export default function ReportsPage() {
                   <tr key={s.id as number} className="border-b">
                     <td className="p-2 font-mono">{s.receiptNumber as string}</td>
                     <td className="p-2">{(s.client as Record<string, unknown>)?.fullName as string || "Mostrador"}</td>
-                    <td className="p-2 text-right font-medium">{formatCurrency(s.total as number)}</td>
+                    <td className="p-2 text-right font-medium">{formatValue(s.total as number)}</td>
                     <td className="p-2">{s.paymentMethod as string}</td>
                     <td className="p-2">{formatDate(s.saleDate as string, "short")}</td>
                   </tr>

@@ -29,7 +29,15 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
+import { CURRENCY_OPTIONS } from "@/src/lib/constants"
 
 const settingsSchema = z.object({
   gymName: z.string().min(1, "El nombre es requerido"),
@@ -74,7 +82,7 @@ export default function SettingsPage() {
           address: formData.address || "",
           phone: formData.phone || "",
           email: formData.email || "",
-          currency: formData.currency || "MXN",
+          currency: formData.currency || "NIO",
           receiptFooter: formData.receiptFooter || "",
           defaultMembershipDuration: Number(formData.defaultMembershipDuration || 30),
           lowStockThreshold: Number(formData.lowStockThreshold || 5),
@@ -114,7 +122,7 @@ export default function SettingsPage() {
       address: "",
       phone: "",
       email: "",
-      currency: "MXN",
+      currency: "NIO",
       receiptFooter: "",
       defaultMembershipDuration: "30",
       lowStockThreshold: "5",
@@ -131,7 +139,7 @@ export default function SettingsPage() {
         address: s.address || "",
         phone: s.phone || "",
         email: s.email || "",
-        currency: s.currency || "MXN",
+        currency: s.currency || "NIO",
         receiptFooter: s.receiptFooter || "",
         defaultMembershipDuration: String(s.defaultMembershipDuration || 30),
         lowStockThreshold: String(s.lowStockThreshold || 5),
@@ -259,9 +267,20 @@ export default function SettingsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Moneda</FormLabel>
-                      <FormControl>
-                        <Input placeholder="MXN" {...field} />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar moneda" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {CURRENCY_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

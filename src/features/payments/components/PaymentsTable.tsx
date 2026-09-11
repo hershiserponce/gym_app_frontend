@@ -40,9 +40,10 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { usePaymentsList, useDeletePayment } from "@/src/features/payments/hooks/usePayments"
-import { formatCurrency, formatDate } from "@/src/utils/formatters"
+import { formatDate } from "@/src/utils/formatters"
 import { PAGINATION, PAYMENT_METHOD_OPTIONS } from "@/src/lib/constants"
 import { useDebounce } from "@/src/hooks/useDebounce"
+import { useCurrency } from "@/src/hooks/useCurrency"
 
 const paymentMethodLabels: Record<string, string> = {
   cash: "Efectivo",
@@ -52,6 +53,7 @@ const paymentMethodLabels: Record<string, string> = {
 }
 
 export function PaymentsTable() {
+  const { formatValue } = useCurrency()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGINATION.DEFAULT_PAGE_SIZE)
   const [search, setSearch] = useState("")
@@ -167,7 +169,7 @@ export function PaymentsTable() {
                       <TableCell>
                         {(p.membership as Record<string, unknown>)?.name as string || "N/A"}
                       </TableCell>
-                      <TableCell>{formatCurrency(p.amount as number)}</TableCell>
+                      <TableCell>{formatValue(p.amount as number)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary">
                           {paymentMethodLabels[p.paymentMethod as string] || p.paymentMethod as string}

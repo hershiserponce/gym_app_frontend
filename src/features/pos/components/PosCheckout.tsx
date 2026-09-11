@@ -38,11 +38,12 @@ import {
 } from "lucide-react"
 import { useCartStore } from "@/src/store/cart-store"
 import { usePosProducts, useCreateSale } from "@/src/features/pos/hooks/usePos"
-import { formatCurrency } from "@/src/utils/formatters"
+import { useCurrency } from "@/src/hooks/useCurrency"
 import { useDebounce } from "@/src/hooks/useDebounce"
 import { PAYMENT_METHOD_OPTIONS } from "@/src/lib/constants"
 
 export function PosCheckout() {
+  const { formatValue } = useCurrency()
   const [search, setSearch] = useState("")
   const [paymentMethod, setPaymentMethod] = useState<string>("cash")
   const [discountInput, setDiscountInput] = useState("0")
@@ -117,7 +118,7 @@ export function PosCheckout() {
             >
               <CardContent className="p-3">
                 <p className="font-medium text-sm truncate">{p.name as string}</p>
-                <p className="text-lg font-bold">{formatCurrency(p.price as number)}</p>
+                <p className="text-lg font-bold">{formatValue(p.price as number)}</p>
                 <Badge variant={p.stock as number > 0 ? "default" : "destructive"} className="text-xs">
                   Stock: {p.stock as number}
                 </Badge>
@@ -158,7 +159,7 @@ export function PosCheckout() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {formatCurrency(item.price)} c/u
+                          {formatValue(item.price)} c/u
                         </p>
                       </div>
                       <div className="flex items-center gap-1 ml-2">
@@ -207,7 +208,7 @@ export function PosCheckout() {
           <CardContent className="p-4 space-y-3">
             <div className="flex justify-between text-sm">
               <span>Subtotal</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatValue(subtotal)}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm">Descuento</span>
@@ -225,7 +226,7 @@ export function PosCheckout() {
             </div>
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
               <span>Total</span>
-              <span>{formatCurrency(total)}</span>
+              <span>{formatValue(total)}</span>
             </div>
 
             <Select value={paymentMethod} onValueChange={(value) => value && setPaymentMethod(value)}>
@@ -248,7 +249,7 @@ export function PosCheckout() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirmar Venta</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Total: {formatCurrency(total)} - {items.length} producto(s)
+                      Total: {formatValue(total)} - {items.length} producto(s)
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

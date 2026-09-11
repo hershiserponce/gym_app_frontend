@@ -26,13 +26,15 @@ import {
   User,
 } from "lucide-react"
 import { useClient } from "@/src/features/clients/hooks/useClients"
-import { formatDate, formatCurrency, getInitials, formatPhone } from "@/src/utils/formatters"
+import { formatDate, getInitials, formatPhone } from "@/src/utils/formatters"
+import { useCurrency } from "@/src/hooks/useCurrency"
 
 type ClientDetailProps = {
   clientId: string | number
 }
 
 export function ClientDetail({ clientId }: ClientDetailProps) {
+  const { formatValue } = useCurrency()
   const { data: client, isLoading } = useClient(clientId)
 
   if (isLoading) {
@@ -212,7 +214,7 @@ export function ClientDetail({ clientId }: ClientDetailProps) {
                         {formatDate(sale.saleDate as string, "short")}
                       </TableCell>
                       <TableCell>
-                        {formatCurrency(sale.total as number)}
+                        {formatValue(sale.total as number)}
                       </TableCell>
                       <TableCell>
                         {sale.paymentMethod === "cash"

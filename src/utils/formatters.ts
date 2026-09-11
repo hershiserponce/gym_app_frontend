@@ -1,5 +1,5 @@
-export function formatCurrency(value: number, currency = "MXN"): string {
-  return new Intl.NumberFormat("es-MX", {
+export function formatCurrency(value: number, currency = "NIO", locale = "es-NI"): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
   }).format(value)

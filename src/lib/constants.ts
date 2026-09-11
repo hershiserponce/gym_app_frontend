@@ -44,3 +44,8 @@ export const INVENTORY_REFERENCE_TYPE_OPTIONS = [
   { value: "adjustment", label: "Ajuste" },
   { value: "expiration", label: "Vencimiento" },
 ] as const
+
+export const CURRENCY_OPTIONS = [
+  { value: "NIO", label: "Córdobas (NIO)", locale: "es-NI" },
+  { value: "USD", label: "Dólares (USD)", locale: "en-US" },
+] as const

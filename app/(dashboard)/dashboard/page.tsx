@@ -11,9 +11,10 @@ import {
   useRecentPayments,
   useRecentSales,
 } from "@/src/features/dashboard/hooks/useDashboard"
-import { formatCurrency } from "@/src/utils/formatters"
+import { useCurrency } from "@/src/hooks/useCurrency"
 
 export default function DashboardPage() {
+  const { formatValue } = useCurrency()
   const { data: stats, isLoading: statsLoading } = useDashboardStats()
   const { data: revenueData, isLoading: chartLoading } = useRevenueChart()
   const { data: recentPayments, isLoading: paymentsLoading } = useRecentPayments()
@@ -31,21 +32,21 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Ingresos del Día"
-          value={stats ? formatCurrency(stats.dailyRevenue) : "$0"}
+          value={stats ? formatValue(stats.dailyRevenue) : "$0"}
            icon={<DollarSign className="h-4 w-4" />}
            tone="blue"
           isLoading={statsLoading}
         />
         <StatsCard
           title="Ingresos por Membresías"
-          value={stats ? formatCurrency(stats.membershipRevenue) : "$0"}
+          value={stats ? formatValue(stats.membershipRevenue) : "$0"}
            icon={<CreditCard className="h-4 w-4" />}
            tone="teal"
           isLoading={statsLoading}
         />
         <StatsCard
           title="Ingresos por Ventas"
-          value={stats ? formatCurrency(stats.salesRevenue) : "$0"}
+          value={stats ? formatValue(stats.salesRevenue) : "$0"}
            icon={<ShoppingCart className="h-4 w-4" />}
            tone="coral"
           isLoading={statsLoading}

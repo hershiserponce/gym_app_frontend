@@ -18,8 +18,9 @@ import {
   Printer,
 } from "lucide-react"
 import { useSalesHistory } from "@/src/features/pos/hooks/usePos"
-import { formatCurrency, formatDate } from "@/src/utils/formatters"
+import { formatDate } from "@/src/utils/formatters"
 import { PAGINATION } from "@/src/lib/constants"
+import { useCurrency } from "@/src/hooks/useCurrency"
 
 const paymentMethodLabels: Record<string, string> = {
   cash: "Efectivo",
@@ -29,6 +30,7 @@ const paymentMethodLabels: Record<string, string> = {
 }
 
 export default function SalesHistoryPage() {
+  const { formatValue } = useCurrency()
   const [page, setPage] = useState(1)
 
   const { data, isLoading, isError, error } = useSalesHistory({
@@ -49,8 +51,8 @@ export default function SalesHistoryPage() {
           `<tr>
             <td>${(item.product as Record<string, unknown>)?.name || "N/A"}</td>
             <td>${item.quantity}</td>
-            <td>${formatCurrency(item.unitPrice as number)}</td>
-            <td>${formatCurrency(item.subtotal as number)}</td>
+            <td>${formatValue(item.unitPrice as number)}</td>
+            <td>${formatValue(item.subtotal as number)}</td>
           </tr>`
       )
       .join("")
@@ -65,7 +67,7 @@ export default function SalesHistoryPage() {
       <table><thead><tr><th>Producto</th><th>Cant</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>
       ${itemsHtml}
       </tbody></table>
-      <h3>Total: ${formatCurrency(sale.total as number)}</h3>
+      <h3>Total: ${formatValue(sale.total as number)}</h3>
       <p>Método: ${paymentMethodLabels[sale.paymentMethod as string] || sale.paymentMethod}</p>
       </body></html>
     `)
@@ -121,7 +123,7 @@ export default function SalesHistoryPage() {
                         {(s.client as Record<string, unknown>)?.fullName as string || "Mostrador"}
                       </TableCell>
                       <TableCell>{(s.items as unknown[])?.length || 0} items</TableCell>
-                      <TableCell className="font-semibold">{formatCurrency(s.total as number)}</TableCell>
+                      <TableCell className="font-semibold">{formatValue(s.total as number)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary">
                           {paymentMethodLabels[s.paymentMethod as string] || s.paymentMethod as string}

@@ -46,11 +46,12 @@ import {
   useMembershipsList,
   useDeleteMembership,
 } from "@/src/features/memberships/hooks/useMemberships"
-import { formatCurrency } from "@/src/utils/formatters"
 import { PAGINATION } from "@/src/lib/constants"
 import { useDebounce } from "@/src/hooks/useDebounce"
+import { useCurrency } from "@/src/hooks/useCurrency"
 
 export function MembershipTable() {
+  const { formatValue } = useCurrency()
   const router = useRouter()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(PAGINATION.DEFAULT_PAGE_SIZE)
@@ -168,7 +169,7 @@ export function MembershipTable() {
                       <TableCell className="font-medium">
                         {m.name as string}
                       </TableCell>
-                      <TableCell>{formatCurrency(m.price as number)}</TableCell>
+                      <TableCell>{formatValue(m.price as number)}</TableCell>
                       <TableCell>{m.duration as number} días</TableCell>
                       <TableCell>
                         <Badge
