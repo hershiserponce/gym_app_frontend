@@ -7,7 +7,7 @@ export type ProductFormData = {
   price: number
   stock: number
   minStock: number
-  supplier: string
+  supplier: string | null
   isActive: boolean
   image?: File | null
 }

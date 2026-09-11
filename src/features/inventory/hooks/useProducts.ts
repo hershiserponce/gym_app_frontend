@@ -14,7 +14,7 @@ export function useProductsList(params?: QueryParams) {
     queryFn: () =>
       productsService.list({
         ...params,
-        populate: "category",
+        populate: params?.populate || "category",
     }),
     enabled: gymId !== null,
   })

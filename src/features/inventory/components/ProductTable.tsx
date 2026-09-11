@@ -60,7 +60,7 @@ export function ProductTable() {
   const params = {
     pagination: { page, pageSize },
     sort: ["name:asc"],
-    populate: "category",
+    populate: "category,supplier",
     filters: debouncedSearch
       ? { name: { $containsi: debouncedSearch } }
       : undefined,
@@ -79,6 +79,9 @@ export function ProductTable() {
         <div className="flex flex-wrap gap-2">
           <Link href="/inventory/categories">
             <Button variant="outline">Categorías</Button>
+          </Link>
+          <Link href="/inventory/suppliers">
+            <Button variant="outline">Proveedores</Button>
           </Link>
           <Link href="/inventory/movements">
             <Button variant="outline">Movimientos</Button>
@@ -112,6 +115,7 @@ export function ProductTable() {
               <TableHead className="w-12"></TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Categoría</TableHead>
+              <TableHead>Proveedor</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Precio</TableHead>
               <TableHead>Costo</TableHead>
@@ -123,7 +127,7 @@ export function ProductTable() {
             {isLoading
               ? Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 8 }).map((_, j) => (
+                    {Array.from({ length: 9 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
@@ -131,11 +135,11 @@ export function ProductTable() {
                   </TableRow>
                 ))
               : isError
-                ? <TableRow><TableCell colSpan={8} className="py-8 text-center text-destructive">Error al cargar productos: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
+                ? <TableRow><TableCell colSpan={9} className="py-8 text-center text-destructive">Error al cargar productos: {error instanceof Error ? error.message : "intenta nuevamente"}</TableCell></TableRow>
                 : products.length === 0
                 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       No se encontraron productos
                     </TableCell>
                   </TableRow>
@@ -165,6 +169,9 @@ export function ProductTable() {
                       </TableCell>
                       <TableCell>
                         {(p.category as Record<string, unknown>)?.name as string || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {(p.supplier as Record<string, unknown>)?.name as string || "-"}
                       </TableCell>
                       <TableCell>
                         <Badge

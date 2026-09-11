@@ -49,7 +49,7 @@ export default function EditProductPage() {
               price: p.price as number,
               stock: p.stock as number,
               minStock: p.minStock as number,
-              supplier: (p.supplier as string) || "",
+              supplier: ((p.supplier as Record<string, unknown>)?.documentId as string) || ((p.supplier as Record<string, unknown>)?.id != null ? String((p.supplier as Record<string, unknown>)?.id) : null),
               isActive: p.isActive as boolean,
             }}
             currentImageUrl={p.imageUrl as string | null}
