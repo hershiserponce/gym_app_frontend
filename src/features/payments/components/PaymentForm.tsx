@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -39,8 +39,13 @@ const paymentSchema = z.object({
 
 type PaymentFormValues = z.infer<typeof paymentSchema>
 
+type LockedClient = { id: string; name: string }
+type PresetMembership = { id: string; name: string; price?: number }
+
 type PaymentFormProps = {
   defaultValues?: Partial<PaymentFormValues>
+  lockedClient?: LockedClient | null
+  presetMembership?: PresetMembership | null
   onSubmit: (data: PaymentFormValues) => void
   isPending: boolean
   onCancel?: () => void
@@ -48,6 +53,8 @@ type PaymentFormProps = {
 
 export function PaymentForm({
   defaultValues,
+  lockedClient,
+  presetMembership,
   onSubmit,
   isPending,
   onCancel,
@@ -55,9 +62,9 @@ export function PaymentForm({
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
-      client: "",
-      membership: "",
-      amount: 0,
+      client: lockedClient?.id ?? "",
+      membership: presetMembership?.id ?? "",
+      amount: presetMembership?.price ?? 0,
       paymentMethod: "cash",
       paymentDate: new Date().toISOString().slice(0, 16),
       notes: "",
@@ -81,16 +88,29 @@ const { data: membershipsData } = useMembershipsList({
   const clients = clientsData?.data || []
   const memberships = membershipsData?.data || []
 
+  const membershipOptions = useMemo(() => {
+    if (!presetMembership) return memberships
+    const exists = memberships.some(
+      (m: Record<string, unknown>) =>
+        String(m.documentId ?? m.id) === presetMembership.id
+    )
+    if (exists) return memberships
+    return [
+      { documentId: presetMembership.id, name: presetMembership.name, price: presetMembership.price },
+      ...memberships,
+    ]
+  }, [presetMembership, memberships])
+
   useEffect(() => {
     if (!selectedMembership) return
-    const membership = memberships.find(
+    const membership = membershipOptions.find(
       (m: Record<string, unknown>) => String(m.documentId ?? m.id) === selectedMembership
     )
     const price = membership?.price
     if (typeof price === "number") {
       form.setValue("amount", price, { shouldValidate: true })
     }
-  }, [selectedMembership, memberships, form])
+  }, [selectedMembership, membershipOptions, form])
 
   return (
     <Form {...form}>
@@ -101,23 +121,29 @@ const { data: membershipsData } = useMembershipsList({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cliente</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value || ""}
-                >
+                {lockedClient ? (
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar cliente..." />
-                    </SelectTrigger>
+                    <Input value={lockedClient.name} readOnly disabled />
                   </FormControl>
-                  <SelectContent>
-                    {clients.map((c: Record<string, unknown>) => (
-                      <SelectItem key={String(c.documentId ?? c.id)} value={String(c.documentId ?? c.id)}>
-                        {c.fullName as string}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                ) : (
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar cliente..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {clients.map((c: Record<string, unknown>) => (
+                        <SelectItem key={String(c.documentId ?? c.id)} value={String(c.documentId ?? c.id)}>
+                          {c.fullName as string}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -137,7 +163,7 @@ const { data: membershipsData } = useMembershipsList({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {memberships.map((m: Record<string, unknown>) => (
+                    {membershipOptions.map((m: Record<string, unknown>) => (
                       <SelectItem key={String(m.documentId ?? m.id)} value={String(m.documentId ?? m.id)}>
                         {m.name as string}
                       </SelectItem>

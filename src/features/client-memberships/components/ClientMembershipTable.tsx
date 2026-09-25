@@ -32,6 +32,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   Search,
   Snowflake,
   RotateCcw,
@@ -43,6 +49,9 @@ import {
   useClientMembershipsList,
   useUpdateClientMembership,
 } from "@/src/features/client-memberships/hooks/useClientMemberships"
+import { useCreatePayment } from "@/src/features/payments/hooks/usePayments"
+import { PaymentForm } from "@/src/features/payments/components/PaymentForm"
+import { getDocumentId } from "@/src/utils/strapi"
 import { formatDate, daysRemaining } from "@/src/utils/formatters"
 import { PAGINATION, MEMBERSHIP_STATUS_OPTIONS } from "@/src/lib/constants"
 import { useDebounce } from "@/src/hooks/useDebounce"
@@ -71,7 +80,7 @@ export function ClientMembershipTable() {
 
   const params = {
     pagination: { page, pageSize },
-    sort: ["endDate:asc"],
+    sort: ["endDate:desc"],
     populate: "client,membership",
     filters: {
       ...(debouncedSearch
@@ -83,9 +92,30 @@ export function ClientMembershipTable() {
 
   const { data, isLoading, isError, error } = useClientMembershipsList(params)
   const updateMutation = useUpdateClientMembership()
+  const createPaymentMutation = useCreatePayment()
+  const [renewOpen, setRenewOpen] = useState(false)
+  const [renewTarget, setRenewTarget] = useState<{
+    client: { id: string; name: string }
+    membership: { id: string; name: string; price?: number }
+  } | null>(null)
 
   const memberships = data?.data || []
   const pagination = data?.meta?.pagination
+
+  const handleRenew = (m: Record<string, unknown>) => {
+    setRenewTarget({
+      client: {
+        id: String(getDocumentId(m.client)),
+        name: (m.client as Record<string, unknown>)?.fullName as string,
+      },
+      membership: {
+        id: String(getDocumentId(m.membership)),
+        name: (m.membership as Record<string, unknown>)?.name as string,
+        price: (m.membership as Record<string, unknown>)?.price as number | undefined,
+      },
+    })
+    setRenewOpen(true)
+  }
 
   const handleStatusChange = (id: string | number, newStatus: string) => {
     updateMutation.mutate(
@@ -176,6 +206,9 @@ export function ClientMembershipTable() {
                 )
                 : memberships.map((m: Record<string, unknown>) => {
                     const remaining = daysRemaining(m.endDate as string)
+                    const rawStatus = m.status as string
+                    const effectiveStatus =
+                      rawStatus === "active" && remaining <= 0 ? "expired" : rawStatus
                     return (
                       <TableRow key={String(m.documentId ?? m.id)}>
                         <TableCell className="font-medium">
@@ -200,13 +233,13 @@ export function ClientMembershipTable() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={statusVariants[m.status as string] || "default"}>
-                            {statusLabels[m.status as string] || m.status as string}
+                          <Badge variant={statusVariants[effectiveStatus] || "default"}>
+                            {statusLabels[effectiveStatus] || effectiveStatus}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
-                            {m.status === "active" && (
+                            {effectiveStatus === "active" && (
                               <>
                                 <Button
                                   variant="ghost"
@@ -236,7 +269,7 @@ export function ClientMembershipTable() {
                                 </Button>
                               </>
                             )}
-                            {m.status === "frozen" && (
+                            {effectiveStatus === "frozen" && (
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -251,17 +284,12 @@ export function ClientMembershipTable() {
                                 <RotateCcw className="h-4 w-4" />
                               </Button>
                             )}
-                            {(m.status === "expired" || m.status === "cancelled") && (
+                            {effectiveStatus === "expired" && (
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 title="Renovar"
-                                onClick={() =>
-                                  handleStatusChange(
-                                   (m.documentId ?? m.id) as string | number,
-                                    "active"
-                                  )
-                                }
+                                onClick={() => handleRenew(m)}
                               >
                                 <RotateCcw className="h-4 w-4" />
                               </Button>
@@ -300,6 +328,42 @@ export function ClientMembershipTable() {
           </div>
         </div>
       )}
+
+      <Dialog
+        open={renewOpen}
+        onOpenChange={(open) => {
+          setRenewOpen(open)
+          if (!open) setRenewTarget(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Renovar membresía</DialogTitle>
+          </DialogHeader>
+          {renewTarget && (
+            <PaymentForm
+              lockedClient={renewTarget.client}
+              presetMembership={renewTarget.membership}
+              isPending={createPaymentMutation.isPending}
+              onCancel={() => {
+                setRenewOpen(false)
+                setRenewTarget(null)
+              }}
+              onSubmit={(data) =>
+                createPaymentMutation.mutate(
+                  data as Parameters<typeof createPaymentMutation.mutate>[0],
+                  {
+                    onSuccess: () => {
+                      setRenewOpen(false)
+                      setRenewTarget(null)
+                    },
+                  }
+                )
+              }
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
